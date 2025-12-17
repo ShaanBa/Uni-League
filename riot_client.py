@@ -1,4 +1,4 @@
-# import requests for https stuff like get post, os for (idk), and dotenv to securely access api
+# import requests for https stuff like get post, os for get api key, and dotenv to securely access api
 import requests
 import os
 from dotenv import load_dotenv
