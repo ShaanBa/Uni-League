@@ -30,7 +30,6 @@ def return_dict_to_json():
 def search_user(game_name, tag_line):
     print(f'Searching for {game_name}')
     return jsonify(get_riot_account(game_name, tag_line))
-    
 
 if __name__ == '__main__':
     app.run(debug=True)
