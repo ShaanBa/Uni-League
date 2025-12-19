@@ -13,10 +13,13 @@ def get_riot_account(game_name, tag_line):
     return r.json()
 
 
+def get_rank_data(puuid):
+    api_key = os.getenv("RIOT_API_KEY")
+    r = requests.get(f"https://na1.api.riotgames.com/lol/league/v4/entries/by-puuid/{puuid}", headers={"X-Riot-Token": api_key})
+    return r.json()
+
 def main():
-    account_details = get_riot_account('PoggyWoggyDoggy6', 'NA1')
-    puuid = account_details['puuid']
-    print(get_summoner_by_puuid(puuid))
+    
 
 if __name__ == "__main__":
     main()
