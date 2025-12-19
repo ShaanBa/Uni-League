@@ -17,6 +17,11 @@ def get_summoner_by_puuid(puuid):
     r = requests.get(f"https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/{puuid}", headers={"X-Riot-Token": api_key})
     return r.json()
 
-account_details = get_riot_account('PoggyWoggyDoggy6', 'NA1')
-puuid = account_details['puuid']
-print(get_summoner_by_puuid(puuid))
+def main():
+    account_details = get_riot_account('PoggyWoggyDoggy6', 'NA1')
+    puuid = account_details['puuid']
+    print(get_summoner_by_puuid(puuid))
+
+if __name__ == "__main__":
+    main()
+
