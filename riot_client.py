@@ -19,7 +19,9 @@ def get_rank_data(puuid):
     return r.json()
 
 def main():
-    
+    account = get_riot_account('PoggyWoggyDoggy6', 'NA1')
+    puuid = account['puuid']
+    print(get_rank_data(puuid))
 
 if __name__ == "__main__":
     main()
