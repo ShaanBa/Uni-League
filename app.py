@@ -1,6 +1,6 @@
 from flask import Flask, jsonify
 import psycopg2
-from riot_client import get_riot_account
+from riot_client import get_riot_account, get_rank_data
 
 app = Flask(__name__)
 
@@ -29,7 +29,13 @@ def return_dict_to_json():
 @app.route('/api/search/<game_name>/<tag_line>')
 def search_user(game_name, tag_line):
     print(f'Searching for {game_name}')
-    return jsonify(get_riot_account(game_name, tag_line))
-
+    account = get_riot_account(game_name, tag_line)
+    puuid = account['puuid']
+    rank = get_rank_data(puuid)
+    full_data = {
+        "account": account,
+        "rank": rank
+    }
+    return jsonify(full_data)
 if __name__ == '__main__':
     app.run(debug=True)
