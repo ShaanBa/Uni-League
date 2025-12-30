@@ -11,7 +11,7 @@ function SearchBar() {
         const summoner = await response.json()
         console.log(summoner)
         setPlayerData(summoner)  
-        //console.log(`https://americas.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${gameName}/${tagLine}`)
+        console.log(`https://americas.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${gameName}/${tagLine}`)
     }
 
     return (
