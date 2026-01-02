@@ -20,12 +20,12 @@ def save_summoner(data: dict):
     )
     cur = con.cursor()
     query = ("""
-        INSERT INTO summoners (puuid, game_name, tag_line, rank_tier, rank_division)
+        INSERT INTO summoners (puuid, game_name, tag, rank_tier, rank_division)
         VALUES (%s, %s, %s, %s, %s) 
         ON CONFLICT (puuid) 
         DO UPDATE SET
             game_name = EXCLUDED.game_name,
-            tag_line = EXCLUDED.tag_line,
+            tag = EXCLUDED.tag,
             rank_tier = EXCLUDED.rank_tier,
             rank_division = EXCLUDED.rank_division
         """)

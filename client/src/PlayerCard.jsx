@@ -1,8 +1,9 @@
 function PlayerCard({   data    }) {
     return(
         <div>
-            {data.account.gameName}
-            {data.rank[0].tier}
+            {data.gameName}
+            {data.rankTier}
+            {data.rankDivision}
         </div>
     )
 
