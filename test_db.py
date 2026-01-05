@@ -32,3 +32,21 @@ def save_summoner(data: dict):
     value = (data['puuid'], data['gameName'], data['tagLine'], data['rankTier'], data['rankDivision'])
     cur.execute(query, value)
     con.commit()
+    
+def get_university_id(domain):
+    con = psycopg2.connect(
+        host = "localhost",
+        database = "unileague",
+        user = "shaanbawa",
+        port = "5432",
+        password = ""
+    )
+    cur = con.cursor()
+    query = "SELECT id FROM universities WHERE domain = %s"
+    cur.execute(query, (domain,))
+    result = cur.fetchone()
+    con.close()
+    if result:
+        return result[0]
+    else:
+        return None
