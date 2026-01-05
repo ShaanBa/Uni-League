@@ -68,3 +68,4 @@ def create_user(email, password_hash, university_id):
     except Exception as e:
         print(f'Error creating user: {e}')
         return False
+# done with backend auth logic
