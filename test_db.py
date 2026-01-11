@@ -42,7 +42,7 @@ def get_university_id(domain):
         password = ""
     )
     cur = con.cursor()
-    query = "SELECT id FROM universities WHERE domain = %s"
+    query = "SELECT uni_id FROM universities WHERE uni_domain = %s"
     cur.execute(query, (domain,))
     result = cur.fetchone()
     con.close()

@@ -1,5 +1,6 @@
 import { use, useState } from 'react'
 import PlayerCard from './PlayerCard'
+import Register from './Register'
 function SearchBar() {
     // state 
     const [gameName, setGameName] = useState("") // intializes 2 variables game name anf tag line with empty state 
@@ -17,7 +18,8 @@ function SearchBar() {
     return (
         <div>
             {playerData && <PlayerCard data={playerData}/>}
-            <input 
+            <Register />
+            {/* <input 
             type='text'
             value={gameName}
             onChange={(e) => setGameName(e.target.value)}
@@ -29,7 +31,7 @@ function SearchBar() {
             onChange={(e) => setTagLine(e.target.value)}
             />
 
-            <button onClick={getSummoner}>Get Summoner</button>
+            <button onClick={getSummoner}>Get Summoner</button> */}
         </div>
     )
 }
