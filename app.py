@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
 import psycopg2
 from riot_client import get_riot_account, get_rank_data
-from test_db import save_summoner, get_university_id, create_user
+from test_db import save_summoner, get_university_id, create_user, get_leaderboard
 from auth_utils import validate_email, hash_password
 
 app = Flask(__name__)
@@ -68,5 +68,10 @@ def register_user():
     if not user:
         return jsonify({"error": "Not valid User"}), 400
     return jsonify({"message": "User created!"}), 201
+
+@app.route('/api/leaderboard', methods=['GET'])
+def leaderboard():
+    return jsonify(get_leaderboard())
+    
 if __name__ == '__main__':
     app.run(debug=True)

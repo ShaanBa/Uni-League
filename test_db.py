@@ -1,5 +1,6 @@
 import psycopg2
 from psycopg2.errors import IntegrityError
+from psycopg2.extras import RealDictCursor
 #first connect to the database 
 con = psycopg2.connect(
     host = "localhost",
@@ -69,3 +70,38 @@ def create_user(email, password_hash, university_id):
         print(f'Error creating user: {e}')
         return False
 # done with backend auth logic
+
+def calculate_score(tier, division):
+    Tier_Map = {
+        "UNRANKED": 0,
+        "IRON": 0,
+        "BRONZE": 400,
+        "SILVER": 800,  
+        "GOLD": 1200,
+        "PLATINUM": 1600,
+        "EMERALD": 2000,
+        "DIAMOND": 2400,
+        "MASTER": 2800,
+        "GRANDMASTER": 3200,
+        "CHALLENGER": 3600
+    }
+    Div_Map = {"IV": 0, "III": 100, "II": 200, "I": 300}
+    return Tier_Map[tier] + Div_Map.get(division, 0)
+def get_leaderboard():
+    con = psycopg2.connect(
+        host = "localhost",
+        database = "unileague",
+        user = "shaanbawa",
+        port = "5432",
+        password = "",
+        cursor_factory=RealDictCursor
+    )
+    cur = con.cursor()
+    query = "SELECT * FROM summoners"   
+    cur.execute(query)
+    summoners = cur.fetchall()
+    for summoner in summoners:
+        summoner['score'] = calculate_score(summoner['rank_tier'], summoner['rank_division'])
+    sorted_list = sorted(summoners, key=lambda x: x['score'], reverse=True)
+    return sorted_list
+
