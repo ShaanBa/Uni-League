@@ -1,6 +1,7 @@
 import { use, useState } from 'react'
 import PlayerCard from './PlayerCard'
 import Register from './Register'
+import Leaderboard from './Leaderboard'
 function SearchBar() {
     // state 
     const [gameName, setGameName] = useState("") // intializes 2 variables game name anf tag line with empty state 
@@ -18,7 +19,8 @@ function SearchBar() {
     return (
         <div>
             {playerData && <PlayerCard data={playerData}/>}
-            <Register />
+            {/* <Register /> */}
+            <Leaderboard /> 
             {/* <input 
             type='text'
             value={gameName}
