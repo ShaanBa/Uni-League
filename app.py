@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
 from riot_client import get_riot_account, get_rank_data
-from db_client import save_summoner, get_university_id, create_user, get_leaderboard
-from auth_utils import validate_email, hash_password
+from db_client import save_summoner, get_university_id, create_user, get_leaderboard, get_user_by_email
+from auth_utils import validate_email, hash_password, check_password
 
 app = Flask(__name__)
 
@@ -49,6 +49,20 @@ def register_user():
 @app.route('/api/leaderboard', methods=['GET'])
 def leaderboard():
     return jsonify(get_leaderboard())
+
+@app.route('/api/login', methods=['POST'])
+def login_user():
+    data = request.get_json()
+    email, password = data['email'], data['password']
+    result = get_user_by_email(email)
+    if not result:
+        return jsonify({"error": "User Not Found!"}), 401
+    user_id, stored_hash = result
+    if not check_password(password, stored_hash):
+        return jsonify({"error": "Incorrect Password!"}), 401
+    return jsonify({"token": user_id})
+    
+    
     
 if __name__ == '__main__':
     app.run(debug=True)
