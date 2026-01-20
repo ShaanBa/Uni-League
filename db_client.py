@@ -105,3 +105,17 @@ def get_leaderboard():
     sorted_list = sorted(summoners, key=lambda x: x['score'], reverse=True)
     return sorted_list
 
+def get_user_by_email(email):
+    con = psycopg2.connect(
+        host = "localhost",
+        database = "unileague",
+        user = "shaanbawa",
+        port = "5432",
+        password = ""
+    )
+    cur = con.cursor()
+    query = "SELECT user_id, password_hash FROM users WHERE user_email = %s"
+    cur.execute(query, (email,))
+    data = cur.fetchone()
+    return data
+    
