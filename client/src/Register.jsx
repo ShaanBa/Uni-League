@@ -1,4 +1,4 @@
-import { use, useState } from "react";
+import { useState } from "react";
 
 function Register() {
     const [email, setEmail] = useState("")
@@ -10,6 +10,13 @@ function Register() {
             body: JSON.stringify({email, password}),
             headers: { 'Content-Type': 'application/json' }
         });
+        
+        // Optional: You can check response.ok here to alert success/fail
+        if (response.ok) {
+            alert("User Created! Please Log In.")
+        } else {
+            alert("Error creating user")
+        }
     }
 
     return (
