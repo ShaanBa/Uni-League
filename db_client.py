@@ -118,4 +118,21 @@ def get_user_by_email(email):
     cur.execute(query, (email,))
     data = cur.fetchone()
     return data
-    
+
+def claim_summoner_(user_id, puuid):
+    con = psycopg2.connect(
+        host = "localhost",
+        database = "unileague",
+        user = "shaanbawa",
+        port = "5432",
+        password = ""
+    )
+    cur = con.cursor()
+    query = '''
+    UPDATE summoners
+    SET user_id = %s
+    WHERE puuid = %s
+    '''
+    cur.execute(query, (user_id, puuid))
+    con.commit()
+    return True

@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request
 from riot_client import get_riot_account, get_rank_data
-from db_client import save_summoner, get_university_id, create_user, get_leaderboard, get_user_by_email
+from db_client import save_summoner, get_university_id, create_user, get_leaderboard, get_user_by_email, claim_summoner_
 from auth_utils import validate_email, hash_password, check_password
 
 app = Flask(__name__)
@@ -61,7 +61,13 @@ def login_user():
     if not check_password(password, stored_hash):
         return jsonify({"error": "Incorrect Password!"}), 401
     return jsonify({"token": user_id})
-    
+
+@app.route('/api/claim_summoner', methods=['POST'])
+def claim_summoner():
+    data = request.get_json()
+    user_id, puuid = data['user_id'], data['puuid']
+    claim_summoner_(user_id, puuid)
+    return jsonify({'message': "Profile claimed!"})
     
     
 if __name__ == '__main__':
