@@ -12,7 +12,30 @@ function SearchPage() {
         console.log(summoner)
         setPlayerData(summoner)  
         console.log(`https://americas.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${gameName}/${tagLine}`)
+    }
     
+    const claimProfile = async () => {
+        const token = localStorage.getItem('user_token')
+
+        if (token == null) {
+            alert('User not logged in!')
+            return
+        }
+
+        if (playerData == null) {
+            alert("Search for summoner first!")
+            return
+        }
+        const response = await fetch('/api/claim_summoner', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ user_id: token, puuid: playerData.puuid})
+        }
+
+        )
+        alert('Profile Claimed!')
     }
 
     return (
@@ -31,6 +54,7 @@ function SearchPage() {
             />
 
             <button onClick={getSummoner}>Get Summoner</button>
+            <button onClick={claimProfile}>Claim Profile</button>
         </div>
     )
 }
