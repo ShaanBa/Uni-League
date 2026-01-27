@@ -8,8 +8,8 @@ app = Flask(__name__)
 def parse_rank_data(rank_list):
     for item in rank_list:
         if item["queueType"] == "RANKED_SOLO_5x5":
-            return {'rankTier': item['tier'], 'rankDivision': item['rank']}
-    return {'rankTier': 'UNRANKED', 'rankDivision': 'N/A'}
+            return {'rankTier': item['tier'], 'rankDivision': item['rank'], 'lp': item['leaguePoints']}
+    return {'rankTier': 'UNRANKED', 'rankDivision': 'N/A', 'lp': 0}
 
 @app.route('/api/search/<game_name>/<tag_line>')
 def search_user(game_name, tag_line):
@@ -24,7 +24,8 @@ def search_user(game_name, tag_line):
         "gameName": account['gameName'],
         "tagLine": account['tagLine'],
         "rankTier": clean_rank['rankTier'],
-        "rankDivision": clean_rank['rankDivision']
+        "rankDivision": clean_rank['rankDivision'],
+        "lp": clean_rank['lp']
     }
     save_summoner(full_summoner)
     return jsonify(full_summoner)
@@ -46,9 +47,9 @@ def register_user():
         return jsonify({"error": "Not valid User"}), 400
     return jsonify({"message": "User created!"}), 201
 
-@app.route('/api/leaderboard', methods=['GET'])
-def leaderboard():
-    return jsonify(get_leaderboard())
+@app.route('/api/leaderboard/<uni_id>', methods=['GET'])
+def leaderboard(uni_id):
+    return jsonify(get_leaderboard(uni_id))
 
 @app.route('/api/login', methods=['POST'])
 def login_user():

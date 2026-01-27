@@ -21,16 +21,17 @@ def save_summoner(data: dict):
     )
     cur = con.cursor()
     query = ("""
-        INSERT INTO summoners (puuid, game_name, tag, rank_tier, rank_division)
-        VALUES (%s, %s, %s, %s, %s) 
+        INSERT INTO summoners (puuid, game_name, tag, rank_tier, rank_division, lp)
+        VALUES (%s, %s, %s, %s, %s, %s) 
         ON CONFLICT (puuid) 
         DO UPDATE SET
             game_name = EXCLUDED.game_name,
             tag = EXCLUDED.tag,
             rank_tier = EXCLUDED.rank_tier,
-            rank_division = EXCLUDED.rank_division
+            rank_division = EXCLUDED.rank_division,
+            lp = EXCLUDED.lp
         """)
-    value = (data['puuid'], data['gameName'], data['tagLine'], data['rankTier'], data['rankDivision'])
+    value = (data['puuid'], data['gameName'], data['tagLine'], data['rankTier'], data['rankDivision'], data['lp'])
     cur.execute(query, value)
     con.commit()
     
@@ -87,18 +88,18 @@ def calculate_score(tier, division):
     }
     Div_Map = {"IV": 0, "III": 100, "II": 200, "I": 300}
     return Tier_Map[tier] + Div_Map.get(division, 0)
-def get_leaderboard():
+def get_leaderboard(uni_id):
     con = psycopg2.connect(
         host = "localhost",
         database = "unileague",
         user = "shaanbawa",
         port = "5432",
-        password = "",
+        password = "",  
         cursor_factory=RealDictCursor
     )
     cur = con.cursor()
-    query = "SELECT * FROM summoners"   
-    cur.execute(query)
+    query = '''SELECT game_name, rank_tier, rank_division, lp FROM summoners INNER JOIN users ON summoners.user_id = users.user_id WHERE users.uni_id = %s'''   
+    cur.execute(query, (uni_id,))
     summoners = cur.fetchall()
     for summoner in summoners:
         summoner['score'] = calculate_score(summoner['rank_tier'], summoner['rank_division'])
