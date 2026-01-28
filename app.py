@@ -58,10 +58,10 @@ def login_user():
     result = get_user_by_email(email)
     if not result:
         return jsonify({"error": "User Not Found!"}), 401
-    user_id, stored_hash = result
+    user_id, stored_hash, uni_id = result
     if not check_password(password, stored_hash):
         return jsonify({"error": "Incorrect Password!"}), 401
-    return jsonify({"token": user_id})
+    return jsonify({"token": user_id, "uni_id": uni_id})
 
 @app.route('/api/claim_summoner', methods=['POST'])
 def claim_summoner():

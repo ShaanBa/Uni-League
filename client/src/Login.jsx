@@ -13,6 +13,7 @@ function Login() {
         const data = await response.json()
         if (response.ok) {
             localStorage.setItem('user_token', data.token)
+            localStorage.setItem('uni_id', data.uni_id)
             alert("Logged In!")
         } else {
             alert("Error: " + data.error)

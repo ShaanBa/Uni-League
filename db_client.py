@@ -98,7 +98,7 @@ def get_leaderboard(uni_id):
         cursor_factory=RealDictCursor
     )
     cur = con.cursor()
-    query = '''SELECT game_name, rank_tier, rank_division, lp FROM summoners INNER JOIN users ON summoners.user_id = users.user_id WHERE users.uni_id = %s'''   
+    query = '''SELECT puuid, game_name, rank_tier, rank_division, lp FROM summoners INNER JOIN users ON summoners.user_id = users.user_id WHERE users.uni_id = %s'''   
     cur.execute(query, (uni_id,))
     summoners = cur.fetchall()
     for summoner in summoners:
@@ -115,7 +115,7 @@ def get_user_by_email(email):
         password = ""
     )
     cur = con.cursor()
-    query = "SELECT user_id, password_hash FROM users WHERE user_email = %s"
+    query = "SELECT user_id, password_hash, uni_id FROM users WHERE user_email = %s"
     cur.execute(query, (email,))
     data = cur.fetchone()
     return data

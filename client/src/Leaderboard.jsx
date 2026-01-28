@@ -5,9 +5,10 @@ function Leaderboard() {
 
     useEffect(() => {
         const fetchLeaderboardData = async () => {
-            const response = await fetch('/api/leaderboard')
+            const uni_id = localStorage.getItem("uni_id")
+            const response = await fetch(`/api/leaderboard/${uni_id}`)
             const data = await response.json()
-            console.log(data    )
+            console.log(data)
             setPlayers(data)
         }
         fetchLeaderboardData()
