@@ -98,7 +98,11 @@ def get_leaderboard(uni_id):
         cursor_factory=RealDictCursor
     )
     cur = con.cursor()
-    query = '''SELECT puuid, game_name, rank_tier, rank_division, lp FROM summoners INNER JOIN users ON summoners.user_id = users.user_id WHERE users.uni_id = %s'''   
+    if uni_id == 'all':
+        query = """SELECT puuid, game_name, rank_tier, rank_division, lp FROM summoners INNER JOIN users ON summoners.user_id = users.user_id"""
+    else:
+        query = '''SELECT universities.uni_name, puuid, game_name, rank_tier, rank_division, lp FROM summoners INNER JOIN users ON summoners.user_id = users.user_id JOIN universities ON users.uni_id = universities.uni_id'''   
+        
     cur.execute(query, (uni_id,))
     summoners = cur.fetchall()
     for summoner in summoners:
