@@ -99,11 +99,19 @@ def get_leaderboard(uni_id):
     )
     cur = con.cursor()
     if uni_id == 'all':
-        query = """SELECT puuid, game_name, rank_tier, rank_division, lp FROM summoners INNER JOIN users ON summoners.user_id = users.user_id"""
+        query = """SELECT universities.uni_name, puuid, game_name, rank_tier, rank_division, lp 
+                   FROM summoners 
+                   INNER JOIN users ON summoners.user_id = users.user_id 
+                   JOIN universities ON users.uni_id = universities.uni_id"""
+        cur.execute(query)        
     else:
-        query = '''SELECT universities.uni_name, puuid, game_name, rank_tier, rank_division, lp FROM summoners INNER JOIN users ON summoners.user_id = users.user_id JOIN universities ON users.uni_id = universities.uni_id'''   
+        query = """SELECT universities.uni_name, puuid, game_name, rank_tier, rank_division, lp 
+                   FROM summoners 
+                   INNER JOIN users ON summoners.user_id = users.user_id 
+                   JOIN universities ON users.uni_id = universities.uni_id 
+                   WHERE users.uni_id = %s"""
+        cur.execute(query, (uni_id,))
         
-    cur.execute(query, (uni_id,))
     summoners = cur.fetchall()
     for summoner in summoners:
         summoner['score'] = calculate_score(summoner['rank_tier'], summoner['rank_division'])
