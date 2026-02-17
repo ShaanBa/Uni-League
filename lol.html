@@ -1,0 +1,26 @@
+<!doctype html> <!-- signifies that this is a html 5 doc-->
+<html> <!-- the root element of the document -->
+<head> <!-- this signifies that this will contain the metadata of the doc-->
+<meta charset="utf-8"> <!-- this says that we are encoding with utf-8 -->
+</head> <!--End metadata-->
+<body> <!-- begin the body which is user displayed data-->
+<p id="line1"></p> <!-- this is the first paragraph -->
+<p id="line2"></p> <!-- this is the second paragraph -->
+<button type="button" onclick="changeText()"> <!-- display a button that will call the change text function when clicked -->
+Change Text <!--the text the button displays change text -->
+</button> <!-- end the button -->
+<script>
+// this is the start of the javascript code
+function changeText(){
+  // Get all paragraph elements and store them in a variable
+  var paragraphs = document.getElementsByTagName('p');
+
+  // Change the inner HTML of the first paragraph (index 0)
+  paragraphs[0].innerHTML = "Hello";
+
+  // Change the inner HTML of the second paragraph (index 1)
+  paragraphs[1].innerHTML = "World!";
+}
+</script> <!-- this is the end of the javascript code -->
+</body> <!-- this is the end of the body -->
+</html> <!-- this is the end of the html document -->

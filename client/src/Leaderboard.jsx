@@ -26,12 +26,29 @@ function Leaderboard() {
                 <option value={localStorage.getItem("uni_id")}>My School</option>
                 <option value={"all"}>Global</option>
             </select>
-            {players.map((player) => (
-            <div key={player.puuid}>
-                {player.game_name} - {player.rank_tier}
-                {player.uni_name && <span> - {player.uni_name}</span>}
-            </div>
-            ))}
+            <table className="leaderboard-table">
+                <caption>Leaderboard</caption>
+                <thead>
+                    <tr>
+
+                    <th>Player</th>
+                    <th>Rank</th>
+                    <th>School</th>
+                    
+                    </tr>
+                </thead>
+                <tbody>
+            {
+            players.map((player) => (
+            <tr key={player.puuid}>
+                <td>{player.game_name}</td> <td>{player.rank_tier}</td> <td>{player.uni_name}</td>
+            </tr>
+            
+            ))
+            
+            }
+            </tbody>
+            </table>
         </div>
 )}
 export default Leaderboard
