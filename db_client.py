@@ -119,3 +119,32 @@ def claim_summoner_(user_id, puuid):
         '''
         cur.execute(query, (user_id, puuid))
         return True
+
+def get_summoner_by_user(user_id):
+    """This function is used to get the puuid of the summoner associated with a user_id. This is used in the profile page to display the summoner information of the user.
+
+    Args:
+        user_id (int): The user_id of the user whose summoner information is to be retrieved.
+
+    Returns:
+        str: The puuid of the summoner associated with the user_id.
+    """
+    with get_db_connection() as con:
+        cur = con.cursor()
+        query = '''
+        SELECT puuid FROM summoners 
+        WHERE user_id = %s
+        '''
+        cur.execute(query, (user_id,))
+        data = cur.fetchone()
+        return data[0]
+
+def update_summoner_rank(puuid, rank_tier, rank_division, lp):
+    with get_db_connection() as con:
+        cur = con.cursor()
+        query = '''
+        UPDATE summoners
+        SET rank_tier = %s, rank_division = %s, lp = %s
+        WHERE puuid = %s
+        '''
+        cur.execute(query, (rank_tier, rank_division, lp, puuid))

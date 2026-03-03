@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request
 from riot_client import get_riot_account, get_rank_data
-from db_client import save_summoner, get_university_id, create_user, get_leaderboard, get_user_by_email, claim_summoner_
+from db_client import save_summoner, get_university_id, create_user, get_leaderboard, get_user_by_email, claim_summoner_, update_summoner_rank, get_summoner_by_user
 from auth_utils import validate_email, hash_password, check_password
 
 app = Flask(__name__)
@@ -69,6 +69,16 @@ def claim_summoner():
     user_id, puuid = data['user_id'], data['puuid']
     claim_summoner_(user_id, puuid)
     return jsonify({'message': "Profile claimed!"})
+
+@app.route('/api/refresh_summoner', methods=['POST'])
+def refresh_summoner():
+    data = request.get_json()
+    user_id = data['user_id']
+    puuid = get_summoner_by_user(user_id)
+    rank = get_rank_data(puuid)
+    clean_rank = parse_rank_data(rank)
+    update_summoner_rank(puuid, clean_rank['rankTier'], clean_rank['rankDivision'], clean_rank['lp'])
+    return jsonify({'message': "Summoner Updated!"})    
     
     
 if __name__ == '__main__':

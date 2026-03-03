@@ -38,6 +38,23 @@ function SearchPage() {
         alert('Profile Claimed!')
     }
 
+    const refreshMyStats =  async () => {
+        const token = localStorage.getItem('user_token');
+
+        if (token == null) {
+            alert('User not logged in!');
+            return;
+        }
+        const response = await fetch('/api/refresh_summoner', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ user_id: token })
+        });
+        alert('Stats Refreshed!');
+    }
+
     return (
         <div>
             {playerData && <PlayerCard data={playerData}/>}
@@ -55,6 +72,7 @@ function SearchPage() {
 
             <button onClick={getSummoner}>Get Summoner</button>
             <button onClick={claimProfile}>Claim Profile</button>
+            <button onClick={refreshMyStats}>Refresh My Stats</button>
         </div>
     )
 }
