@@ -6,19 +6,37 @@ from auth_utils import validate_email, hash_password, check_password
 app = Flask(__name__)
 
 def parse_rank_data(rank_list):
-    for item in rank_list:
-        if item["queueType"] == "RANKED_SOLO_5x5":
-            return {'rankTier': item['tier'], 'rankDivision': item['rank'], 'lp': item['leaguePoints']}
-    return {'rankTier': 'UNRANKED', 'rankDivision': 'N/A', 'lp': 0}
+    """Returns a dictionary containing pertinent rank data (tier, rank, lp) 
+
+    Args:
+        rank_list (list(dict)): The messy rank object we get back from the Riot API
+
+    Returns:
+        dict: Returns a clean dictionary of rank data
+    """
+    for item in rank_list: 
+        if item["queueType"] == "RANKED_SOLO_5x5": #we only care about ranked solo data for the app
+            return {'rankTier': item['tier'], 'rankDivision': item['rank'], 'lp': item['leaguePoints']} # return the rank info in a clean format
+    return {'rankTier': 'UNRANKED', 'rankDivision': 'N/A', 'lp': 0} # if there is no ranked solo data, they are unranked (for the purposes of the app at least)
 
 @app.route('/api/search/<game_name>/<tag_line>')
 def search_user(game_name, tag_line):
+    """Gets a summoner using the game name and tag line and puts them in the database.
+
+    Args:
+        game_name (str): The user's League of Legends name
+        tag_line (str): The users tag (#etc...)
+
+    Returns:
+        response: JSON response containing the summoner info
+    """
     print(f'Searching for {game_name}')
-    account = get_riot_account(game_name, tag_line)
+    account = get_riot_account(game_name, tag_line) 
     puuid = account['puuid']
     rank = get_rank_data(puuid)
-    clean_rank = parse_rank_data(rank)
+    clean_rank = parse_rank_data(rank) # the rank is a cluttered object so we clean it to only get what we need
     
+    # create the summoner format
     full_summoner = {
         "puuid": puuid,
         "gameName": account['gameName'],
@@ -27,58 +45,117 @@ def search_user(game_name, tag_line):
         "rankDivision": clean_rank['rankDivision'],
         "lp": clean_rank['lp']
     }
-    save_summoner(full_summoner)
-    return jsonify(full_summoner)
+    save_summoner(full_summoner) #add to db
+    return jsonify(full_summoner) #return in json so we can use 
 
 @app.route('/api/register', methods=['POST'])
 def register_user():
-    data = request.get_json()
+    """Registers the user by validating their email, hashing their password, and saving them in the database.
+
+    Args (Json): 
+          email (str): The user's email 
+          password (str): The user's password
+          
+    Returns:
+        Response: JSON response telling the success/failure of registration
+    """
+    data = request.get_json()  # get email and password from request body
+    
+    # get email and password
     email = data['email']
     password = data['password']
+    
+    # call validate_email to check validity of the email and also get the domain for university lookup
     is_valid, extracted_domain = validate_email(email)
+    
     if not is_valid:
-        return jsonify({"error": "Not valid email"}), 400
-    uni_id = get_university_id(extracted_domain)
+        return jsonify({"error": "Not valid email"}), 400 
+    uni_id = get_university_id(extracted_domain) #get the uni id by looking up domain in db
     if not uni_id:
-        return jsonify({"error": "Not valid university id"}), 400
-    hashed_pass = hash_password(password)
+        return jsonify({"error": "Not valid university id"}), 400 # if no uni id is found, return (bad request)``
+    hashed_pass = hash_password(password) 
     user = create_user(email, hashed_pass, uni_id)
     if not user:
-        return jsonify({"error": "Not valid User"}), 400
-    return jsonify({"message": "User created!"}), 201
+        return jsonify({"error": "Not valid User"}), 400 # if user creation fails for some reason, return (bad request)
+    return jsonify({"message": "User created!"}), 201 # if everything goes well, return success message with 201 (created) status code
 
 @app.route('/api/leaderboard/<uni_id>', methods=['GET'])
 def leaderboard(uni_id):
-    return jsonify(get_leaderboard(uni_id))
+    """Get leaderboard for a specific university
+
+    Args:
+        uni_id (str): The university ID
+
+    Returns:
+        Response: JSON response containing the leaderboard data
+    """
+    return jsonify(get_leaderboard(uni_id)) # get leaderboard in json format
 
 @app.route('/api/login', methods=['POST'])
 def login_user():
+    """Logs in use by checking if email real and password valid. If it is return a token for auth and the university id for frontend use.
+    
+    Args (Json):
+    email (str): The user's email
+    password (str): The user's password
+
+    Returns:
+        Response: JSON response containing the token and university ID
+    """ 
+    # get email and password from request body
     data = request.get_json()
     email, password = data['email'], data['password']
+    
+    # check if email corresponds to a user and get the stored hash and uni_id for that user
     result = get_user_by_email(email)
     if not result:
-        return jsonify({"error": "User Not Found!"}), 401
-    user_id, stored_hash, uni_id = result
-    if not check_password(password, stored_hash):
-        return jsonify({"error": "Incorrect Password!"}), 401
-    return jsonify({"token": user_id, "uni_id": uni_id})
+        return jsonify({"error": "User Not Found!"}), 401 # if no user is found with that email, return unauthorized
+    user_id, stored_hash, uni_id = result # if user is found, unpack the stored hash and uni_id for that user
+    if not check_password(password, stored_hash): 
+        return jsonify({"error": "Incorrect Password!"}), 401 # if given pass and the hashed pass don't match, return unauthorized
+    return jsonify({"token": user_id, "uni_id": uni_id}) # if all checks, return token for auth and uni_if for frontend use
 
 @app.route('/api/claim_summoner', methods=['POST'])
 def claim_summoner():
+    """Allows user to claim summoner
+    
+    Args (Json):
+    user_id (int): The user's ID (token from login)
+    puuid (str): The puuid of the summoner they want to claim
+
+    Returns:
+        Response: JSON response indicating the success or failure of the operation
+    """
+    # get user_id and puuid from request body
     data = request.get_json()
     user_id, puuid = data['user_id'], data['puuid']
+    
+    # claim the summoner by associating the puuid with the user_id in the database
     claim_summoner_(user_id, puuid)
-    return jsonify({'message': "Profile claimed!"})
+    return jsonify({'message': "Profile claimed!"}) # if all checks, return success message
 
 @app.route('/api/refresh_summoner', methods=['POST'])
 def refresh_summoner():
+    """Takes existing summoner and updates rank info from Riot API and update in database
+    
+    Args (Json):
+    user_id (int): The user's ID (token from login)
+
+    Returns:
+        Response: JSON response indicating the success or failure of the operation`
+    """
+    # get user_id from request body
     data = request.get_json()
     user_id = data['user_id']
+    
+    # get the messy rank object, and clean it.
     puuid = get_summoner_by_user(user_id)
     rank = get_rank_data(puuid)
     clean_rank = parse_rank_data(rank)
+    
+    #update the summoner's rank info in the database
     update_summoner_rank(puuid, clean_rank['rankTier'], clean_rank['rankDivision'], clean_rank['lp'])
-    return jsonify({'message': "Summoner Updated!"})    
+    return jsonify({'message': "Summoner Updated!"}) # if all checks, return success message 
     
     
 if __name__ == '__main__':
