@@ -1,6 +1,7 @@
 import { useState } from "react";
 
-function Login() {
+// Add the onLoginSuccess prop here in the parentheses
+function Login({ onLoginSuccess }) {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
 
@@ -11,10 +12,16 @@ function Login() {
             headers: { 'Content-Type': 'application/json' }
         });
         const data = await response.json()
+        
         if (response.ok) {
             localStorage.setItem('user_token', data.token)
             localStorage.setItem('uni_id', data.uni_id)
             alert("Logged In!")
+            
+            // Tell App.jsx that the login was successful!
+            if (onLoginSuccess) {
+                onLoginSuccess()
+            }
         } else {
             alert("Error: " + data.error)
         }
@@ -38,7 +45,6 @@ function Login() {
             <button onClick={handleLogin}>
                 Login
             </button>
-
         </div>
     )
 }
