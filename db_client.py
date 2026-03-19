@@ -214,3 +214,17 @@ def update_summoner_rank(puuid, rank_tier, rank_division, lp):
         WHERE puuid = %s
         '''
         cur.execute(query, (rank_tier, rank_division, lp, puuid))
+
+def get_profile_by_user(user_id):
+    '''
+    Gets the full summoner profile for a specific user.
+    '''
+    with get_db_connection() as con:
+        cur = con.cursor(cursor_factory=RealDictCursor)
+        query = """
+            SELECT game_name, tag, rank_tier, rank_division, lp 
+            FROM summoners 
+            WHERE user_id = %s
+        """
+        cur.execute(query, (user_id,))
+        return cur.fetchone()

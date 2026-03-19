@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request
 from riot_client import get_riot_account, get_rank_data
-from db_client import save_summoner, get_university_id, create_user, get_leaderboard, get_user_by_email, claim_summoner_, update_summoner_rank, get_summoner_by_user
+from db_client import save_summoner, get_university_id, create_user, get_leaderboard, get_user_by_email, claim_summoner_, update_summoner_rank, get_summoner_by_user, get_profile_by_user
 from auth_utils import validate_email, hash_password, check_password
 
 app = Flask(__name__)
@@ -156,6 +156,23 @@ def refresh_summoner():
     #update the summoner's rank info in the database
     update_summoner_rank(puuid, clean_rank['rankTier'], clean_rank['rankDivision'], clean_rank['lp'])
     return jsonify({'message': "Summoner Updated!"}) # if all checks, return success message 
+
+@app.route('/api/profile/<user_id>', methods=['GET'])
+def get_user_profile(user_id):
+    """Fetches a user's claimed summoner profile."""
+    profile = get_profile_by_user(user_id)
+    
+    if not profile:
+        return jsonify({"error": "Profile not found"}), 404
+        
+    # Format the keys exactly how PlayerCard.jsx expects them
+    return jsonify({
+        "gameName": profile['game_name'],
+        "tagLine": profile['tag'],
+        "rankTier": profile['rank_tier'],
+        "rankDivision": profile['rank_division'],
+        "lp": profile['lp']
+    })
     
     
 if __name__ == '__main__':
