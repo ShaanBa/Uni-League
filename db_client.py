@@ -39,18 +39,20 @@ def save_summoner(data: dict):
         #below query uses ON CONFLICT, because if summoner exists, we should update their info
         # so in the case of existing summoner, update their game name, tag, and rank info. In the case of new summoner, just insert them as normal
         query = ("""
-            INSERT INTO summoners (puuid, game_name, tag, rank_tier, rank_division, lp)
-            VALUES (%s, %s, %s, %s, %s, %s) 
+            INSERT INTO summoners (puuid, game_name, tag, rank_tier, rank_division, lp, wins, losses)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s) 
             ON CONFLICT (puuid) 
             DO UPDATE SET
                 game_name = EXCLUDED.game_name,
                 tag = EXCLUDED.tag,
                 rank_tier = EXCLUDED.rank_tier,
                 rank_division = EXCLUDED.rank_division,
-                lp = EXCLUDED.lp
+                lp = EXCLUDED.lp,
+                wins = EXCLUDED.wins,
+                losses = EXCLUDED.losses
             """)
         # the value is a tuple of the data we want to insert/update, in the same order as the query placeholders
-        value = (data['puuid'], data['gameName'], data['tagLine'], data['rankTier'], data['rankDivision'], data['lp'])
+        value = (data['puuid'], data['gameName'], data['tagLine'], data['rankTier'], data['rankDivision'], data['lp'], data['wins'], data['losses'])
         cur.execute(query, value)
     
 def get_university_id(domain):
@@ -124,7 +126,7 @@ def get_leaderboard(uni_id):
         cur = con.cursor(cursor_factory=RealDictCursor) # get results as dicts for ease of use in frontend 
         if uni_id == 'all':
             # all means we want all unis in LB, so no need for WHERE clause to filter by uni_id
-            query = """SELECT universities.uni_name, puuid, game_name, rank_tier, rank_division, lp 
+            query = """SELECT universities.uni_name, puuid, game_name, rank_tier, rank_division, lp, wins, losses
                     FROM summoners 
                     INNER JOIN users ON summoners.user_id = users.user_id 
                     JOIN universities ON users.uni_id = universities.uni_id"""
@@ -198,22 +200,24 @@ def get_summoner_by_user(user_id):
         data = cur.fetchone()
         return data[0]
 
-def update_summoner_rank(puuid, rank_tier, rank_division, lp):
+def update_summoner_rank(puuid, rank_tier, rank_division, lp, wins, losses):
     '''
     Updates the rank information of a summoner in the database.
     Args: puuid (str): The puuid of the summoner whose rank information is to be updated.
           rank_tier (str): The new rank tier for the summoner.
           rank_division (str): The new rank division for the summoner.
           lp (int): The new league points for the summoner.
+          wins (int): The new number of wins for the summoner.
+          losses (int): The new number of losses for the summoner.
     '''
     with get_db_connection() as con:
         cur = con.cursor()
         query = '''
         UPDATE summoners
-        SET rank_tier = %s, rank_division = %s, lp = %s
+        SET rank_tier = %s, rank_division = %s, lp = %s, wins = %s, losses = %s
         WHERE puuid = %s
         '''
-        cur.execute(query, (rank_tier, rank_division, lp, puuid))
+        cur.execute(query, (rank_tier, rank_division, lp, wins, losses, puuid))
 
 def get_profile_by_user(user_id):
     '''
@@ -222,7 +226,7 @@ def get_profile_by_user(user_id):
     with get_db_connection() as con:
         cur = con.cursor(cursor_factory=RealDictCursor)
         query = """
-            SELECT game_name, tag, rank_tier, rank_division, lp 
+            SELECT game_name, tag, rank_tier, rank_division, lp, wins, losses
             FROM summoners 
             WHERE user_id = %s
         """

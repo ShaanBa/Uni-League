@@ -16,8 +16,14 @@ def parse_rank_data(rank_list):
     """
     for item in rank_list: 
         if item["queueType"] == "RANKED_SOLO_5x5": #we only care about ranked solo data for the app
-            return {'rankTier': item['tier'], 'rankDivision': item['rank'], 'lp': item['leaguePoints']} # return the rank info in a clean format
-    return {'rankTier': 'UNRANKED', 'rankDivision': 'N/A', 'lp': 0} # if there is no ranked solo data, they are unranked (for the purposes of the app at least)
+            return {
+                'rankTier': item['tier'],
+                'rankDivision': item['rank'],
+                'lp': item['leaguePoints'],
+                'wins': item['wins'],
+                'losses' : item['losses']
+                } # return the rank info in a clean format
+    return {'rankTier': 'UNRANKED', 'rankDivision': 'N/A', 'lp': 0, 'wins': 0, 'losses': 0} # if there is no ranked solo data, they are unranked (for the purposes of the app at least)
 
 @app.route('/api/search/<game_name>/<tag_line>')
 def search_user(game_name, tag_line):
@@ -43,7 +49,10 @@ def search_user(game_name, tag_line):
         "tagLine": account['tagLine'],
         "rankTier": clean_rank['rankTier'],
         "rankDivision": clean_rank['rankDivision'],
-        "lp": clean_rank['lp']
+        "lp": clean_rank['lp'],
+        "wins": clean_rank['wins'],
+        "losses": clean_rank['losses']
+
     }
     save_summoner(full_summoner) #add to db
     return jsonify(full_summoner) #return in json so we can use 

@@ -31,16 +31,17 @@ function PlayerCard({ data }) {
                 <span className="tag-line">#{data.tagLine}</span>
             </div>
             
-            <div className="rank-info" style={{ borderColor: rankColor }}>
-                <div className="tier-text" style={{ color: rankColor }}>
-                    {data.rankTier} {data.rankDivision !== 'N/A' ? data.rankDivision : ''}
-                </div>
-                {data.rankTier !== 'UNRANKED' && (
-                    <div className="lp-text">
-                        {data.lp} LP
-                    </div>
-                )}
-            </div>
+<div className="rank-info" style={{ borderColor: rankColor }}>
+    <div className="tier-text" style={{ color: rankColor }}>
+        {data.rankTier} {data.rankDivision !== 'N/A' ? data.rankDivision : ''}
+    </div>
+    {data.rankTier !== 'UNRANKED' && (
+        <div className="lp-text">
+            {data.lp} LP | {data.wins}W - {data.losses}L 
+            ({data.wins + data.losses > 0 ? Math.round((data.wins / (data.wins + data.losses)) * 100) : 0}%)
+        </div>
+    )}
+</div>
         </div>
     );
 }
