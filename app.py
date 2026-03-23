@@ -145,26 +145,24 @@ def claim_summoner():
 
 @app.route('/api/refresh_summoner', methods=['POST'])
 def refresh_summoner():
-    """Takes existing summoner and updates rank info from Riot API and update in database
-    
-    Args (Json):
-    user_id (int): The user's ID (token from login)
-
-    Returns:
-        Response: JSON response indicating the success or failure of the operation`
-    """
-    # get user_id from request body
+    """Takes existing summoner and updates rank info from Riot API and update in database"""
     data = request.get_json()
     user_id = data['user_id']
     
-    # get the messy rank object, and clean it.
     puuid = get_summoner_by_user(user_id)
     rank = get_rank_data(puuid)
     clean_rank = parse_rank_data(rank)
     
-    #update the summoner's rank info in the database
-    update_summoner_rank(puuid, clean_rank['rankTier'], clean_rank['rankDivision'], clean_rank['lp'])
-    return jsonify({'message': "Summoner Updated!"}) # if all checks, return success message 
+    # ADDED the wins and losses here!
+    update_summoner_rank(
+        puuid, 
+        clean_rank['rankTier'], 
+        clean_rank['rankDivision'], 
+        clean_rank['lp'],
+        clean_rank['wins'],
+        clean_rank['losses']
+    )
+    return jsonify({'message': "Summoner Updated!"})
 
 @app.route('/api/profile/<user_id>', methods=['GET'])
 def get_user_profile(user_id):
@@ -174,13 +172,15 @@ def get_user_profile(user_id):
     if not profile:
         return jsonify({"error": "Profile not found"}), 404
         
-    # Format the keys exactly how PlayerCard.jsx expects them
+    # ADDED wins and losses to the JSON response!
     return jsonify({
         "gameName": profile['game_name'],
         "tagLine": profile['tag'],
         "rankTier": profile['rank_tier'],
         "rankDivision": profile['rank_division'],
-        "lp": profile['lp']
+        "lp": profile['lp'],
+        "wins": profile.get('wins', 0),
+        "losses": profile.get('losses', 0)
     })
     
     
