@@ -1,24 +1,130 @@
-.leaderboard-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-  background-color: #2c2f33; /* Dark gaming background */
-  color: white;
-  font-family: sans-serif;
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+    /* League of Legends "Hextech" Color Palette */
+    --bg-dark: #010a13;
+    --bg-panel: #1e2328;
+    --gold-primary: #c8aa6e;
+    --gold-hover: #f0e6d2;
+    --text-main: #a09b8c;
+    --text-light: #f0e6d2;
+    --hex-blue: #0bc6e3;
+    --border-color: #3e3723;
 }
 
-.leaderboard-table th, .leaderboard-table td {
-  padding: 12px 15px;
-  text-align: left;
-  border-bottom: 1px solid #444;
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
-.leaderboard-table th {
-  background-color: #7289da; /* Blurple/Gaming accent */
-  font-weight: bold;
-  text-transform: uppercase;
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-family: 'Inter', sans-serif;
+    background-image: radial-gradient(circle at top center, #1e2328 0%, #010a13 100%);
+    min-height: 100vh;
 }
 
-.leaderboard-table tr:hover {
-  background-color: #40444b; /* Highlight row on hover */
+h1, h2, h3, h4 {
+    font-family: 'Cinzel', serif;
+    color: var(--gold-primary);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 1.5rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
 }
+
+p {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+/* --- App Layout --- */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* --- Navigation --- */
+nav {
+    background-color: rgba(1, 10, 19, 0.95);
+    border-bottom: 2px solid var(--border-color);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+/* --- Hextech Buttons --- */
+button {
+    background: linear-gradient(180deg, #1e2328 0%, #010a13 100%);
+    border: 1px solid var(--gold-primary);
+    color: var(--gold-primary);
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    padding: 0.6rem 1.5rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    border-radius: 2px;
+}
+
+button:hover {
+    color: var(--gold-hover);
+    border-color: var(--gold-hover);
+    box-shadow: 0 0 15px rgba(200, 170, 110, 0.4), inset 0 0 10px rgba(200, 170, 110, 0.1);
+    transform: translateY(-1px);
+}
+
+/* --- Forms & Inputs --- */
+input {
+    background-color: #010a13;
+    border: 1px solid var(--border-color);
+    color: var(--text-light);
+    padding: 0.8rem 1rem;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: all 0.3s ease;
+    width: 100%;
+    max-width: 300px;
+    margin: 0.5rem;
+    border-radius: 2px;
+}
+
+input:focus {
+    border-color: var(--hex-blue);
+    box-shadow: 0 0 10px rgba(11, 198, 227, 0.3);
+}
+
+/* --- Main Content Panel --- */
+.main-content {
+    max-width: 900px;
+    margin: 3rem auto;
+    padding: 3rem;
+    background-color: rgba(30, 35, 40, 0.8);
+    border: 1px solid var(--border-color);
+    border-radius: 2px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8);
+    width: 90%;
+    text-align: center;
+    position: relative;
+}
+
+/* Subtle corner accents for the main panel */
+.main-content::before, .main-content::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border: 1px solid var(--gold-primary);
+}
+.main-content::before { top: 4px; left: 4px; border-right: none; border-bottom: none; }
+.main-content::after { bottom: 4px; right: 4px; border-left: none; border-top: none; }

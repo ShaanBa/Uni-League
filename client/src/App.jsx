@@ -24,34 +24,39 @@ function App() {
 
     return (
         <Router>
-            <nav>
-                <Link to="/"><button>Search</button></Link>
-                <Link to="/leaderboard"><button>Leaderboard</button></Link>
+            <div className="app-container">
+                <nav>
+                    <Link to="/"><button>Search</button></Link>
+                    <Link to="/leaderboard"><button>Leaderboard</button></Link>
+                    
+                    {!isLoggedIn ? (
+                        <>
+                            <Link to="/register"><button>Register</button></Link>
+                            <Link to="/login"><button>Login</button></Link>
+                        </>
+                    ) : (
+                        <>
+                            <Link to="/profile"><button>My Profile</button></Link>
+                            <button onClick={handleLogout}>Logout</button>
+                        </>
+                    )}
+                </nav>
                 
-                {!isLoggedIn ? (
-                    <>
-                        <Link to="/register"><button>Register</button></Link>
-                        <Link to="/login"><button>Login</button></Link>
-                    </>
-                ) : (
-                    <>
-                        <Link to="/profile"><button>My Profile</button></Link>
-                        <button onClick={handleLogout}>Logout</button>
-                    </>
-                )}
-            </nav>
-            
-            <Routes>
-                <Route path="/" element={<SearchPage />} />
-                <Route path="/leaderboard" element={<Leaderboard />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/login" element={
-                    isLoggedIn ? <Navigate to="/profile" /> : <Login onLoginSuccess={() => setIsLoggedIn(true)} />
-                } />
-                <Route path="/profile" element={
-                    isLoggedIn ? <Profile /> : <Navigate to="/login" />
-                } />
-            </Routes>
+                {/* Wrapping our routes in this main-content div applies the central panel styling */}
+                <main className="main-content">
+                    <Routes>
+                        <Route path="/" element={<SearchPage />} />
+                        <Route path="/leaderboard" element={<Leaderboard />} />
+                        <Route path="/register" element={<Register />} />
+                        <Route path="/login" element={
+                            isLoggedIn ? <Navigate to="/profile" /> : <Login onLoginSuccess={() => setIsLoggedIn(true)} />
+                        } />
+                        <Route path="/profile" element={
+                            isLoggedIn ? <Profile /> : <Navigate to="/login" />
+                        } />
+                    </Routes>
+                </main>
+            </div>
         </Router>
     )
 }

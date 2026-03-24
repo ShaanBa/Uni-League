@@ -1,62 +1,59 @@
 .player-card {
-    background-color: #2c2f33; /* Dark theme matching your leaderboard */
-    border-radius: 12px;
-    padding: 24px;
-    width: 320px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 20px auto;
-    color: white;
-    font-family: 'Inter', system-ui, sans-serif;
-    transition: transform 0.2s ease-in-out;
+    background: linear-gradient(135deg, #1e2328 0%, #010a13 100%);
+    border: 1px solid var(--border-color);
+    border-radius: 2px;
+    padding: 2.5rem;
+    text-align: center;
+    max-width: 450px;
+    margin: 2rem auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .player-card:hover {
-    transform: translateY(-5px); /* Slight lift effect on hover */
-}
-
-.player-header {
-    text-align: center;
-    margin-bottom: 20px;
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 1), 0 0 15px rgba(200, 170, 110, 0.1);
+    border-color: var(--gold-primary);
 }
 
 .player-header h2 {
-    margin: 0;
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: #ffffff;
+    font-size: 2.2rem;
+    margin-bottom: 0.2rem;
+    color: var(--text-light);
+    letter-spacing: 3px;
 }
 
 .tag-line {
+    color: var(--gold-primary);
     font-size: 1rem;
-    color: #b9bbbe; /* Lighter grey for the tag */
+    letter-spacing: 2px;
+    font-family: 'Cinzel', serif;
 }
 
 .rank-info {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    /* The border-top color is overridden dynamically in PlayerCard.jsx */
+    border-top: 2px solid var(--border-color); 
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 16px;
-    border: 2px solid; /* Color applied inline via React */
-    border-radius: 8px;
-    width: 100%;
-    background-color: rgba(0, 0, 0, 0.2);
+    gap: 0.8rem;
+    background: radial-gradient(ellipse at top, rgba(255,255,255,0.03) 0%, transparent 70%);
 }
 
 .tier-text {
-    font-size: 1.4rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 4px;
-    /* Color applied inline via React */
+    font-family: 'Cinzel', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.8);
 }
 
 .lp-text {
+    color: var(--text-light);
     font-size: 1.1rem;
-    color: #e3e5e8;
     font-weight: 500;
+    letter-spacing: 1px;
 }
