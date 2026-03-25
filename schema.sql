@@ -20,5 +20,8 @@ CREATE TABLE summoners (
     tag VARCHAR NOT NULL DEFAULT 'NA1', -- the # part of the full name same question with game name 
     rank_division VARCHAR NOT NULL DEFAULT 'NA', -- IM NOT sure on this because what if you are unranked
     rank_tier VARCHAR NOT NULL DEFAULT 'UNRANKED',
-    user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE UNIQUE
+    user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE UNIQUE,
+    lp INTEGER NOT NULL DEFAULT 0,
+    wins INTEGER NOT NULL DEFAULT 0,
+    losses INTEGER NOT NULL DEFAULT 0
 );
