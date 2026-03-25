@@ -2,11 +2,11 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://YOUR_BACKEND_URL.onrender.com/api/$1"
+      "destination": "https://uni-league-g1wf.onrender.com/api/$1"
     },
     {
       "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
-}   
+}
