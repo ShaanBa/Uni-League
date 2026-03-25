@@ -2,9 +2,10 @@ from flask import Flask, jsonify, request
 from riot_client import get_riot_account, get_rank_data
 from db_client import save_summoner, get_university_id, create_user, get_leaderboard, get_user_by_email, claim_summoner_, update_summoner_rank, get_summoner_by_user, get_profile_by_user
 from auth_utils import validate_email, hash_password, check_password
+from flask_cors import CORS
 
 app = Flask(__name__)
-
+CORS(app) # enable CORS for all routes
 def parse_rank_data(rank_list):
     """Returns a dictionary containing pertinent rank data (tier, rank, lp) 
 
