@@ -14,13 +14,7 @@ def get_db_connection():
         this allows the code to be super modular
         and clean, and also handling connection closing and committing automatically
         '''
-        con = psycopg2.connect(
-            host = os.getenv("DB_HOST"),
-            database = os.getenv("DB_NAME"),
-            user = os.getenv("DB_USER"),
-            port = os.getenv("DB_PORT"),
-            password = os.getenv("DB_PASS")
-        ) # connect to db using credentials from .env file
+        con = psycopg2.connect(os.environ.get("DATABASE_URL")) # connect to db using credentials from .env file
         try:
             yield con # give back the con for the block to use 
         finally:
