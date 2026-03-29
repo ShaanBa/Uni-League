@@ -134,31 +134,26 @@ def leaderboard(uni_id):
 @app.route('/api/login', methods=['POST'])
 def login_user():
     """Logs in use by checking if email real and password valid. If it is return a token for auth and the university id for frontend use.
-    
-    Args (Json):
-    email (str): The user's email
-    password (str): The user's password
-
-    Returns:
-        Response: JSON response containing the token and university ID
     """ 
-    # get email and password from request body
     data = request.get_json()
     email, password = data['email'], data['password']
     
-    # check if email corresponds to a user and get the stored hash and uni_id for that user
     result = get_user_by_email(email)
     if not result:
-        return jsonify({"error": "User Not Found!"}), 401 # if no user is found with that email, return unauthorized
-    user_id, stored_hash, uni_id = result # if user is found, unpack the stored hash and uni_id for that user
-    if not check_password(password, stored_hash): 
-        return jsonify({"error": "Incorrect Password!"}), 401 # if given pass and the hashed pass don't match, return unauthorized
+        return jsonify({"error": "User Not Found!"}), 401 
     
+    user_id, stored_hash, uni_id = result 
+    
+    if not check_password(password, stored_hash): 
+        return jsonify({"error": "Incorrect Password!"}), 401 
+    
+    # FIXED: Use the datetime module properly
     token = jwt.encode({
         'user_id': user_id,
-        'exp': data.datetime.now(datetime.utcnow() + datetime.timedelta(hours=24)) # token expires in 24 hours
-    }, app.config['SECRET_KEY'], algorithm="HS256") # create the token using the user_id and the secret key
-    return jsonify({"token": token, "uni_id": uni_id}) # if all checks, return token for auth and uni_if for frontend use
+        'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=24)
+    }, app.config['SECRET_KEY'], algorithm="HS256") 
+    
+    return jsonify({"token": token, "uni_id": uni_id})
 
 @app.route('/api/claim_summoner', methods=['POST'])
 @token_required
