@@ -1,17 +1,18 @@
 import { useState } from "react"
 import PlayerCard from "./PlayerCard"
+
 function SearchPage() {
     // state 
-    const [gameName, setGameName] = useState("") // intializes 2 variables game name anf tag line with empty state 
+    const [gameName, setGameName] = useState("") 
     const [tagLine, setTagLine] = useState("")
     const [playerData, setPlayerData] = useState(null)
+    
     //logic
     const getSummoner = async () => {
         const response = await fetch(`/api/search/${gameName}/${tagLine}`)
         const summoner = await response.json()
         console.log(summoner)
         setPlayerData(summoner)  
-        console.log(`https://americas.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${gameName}/${tagLine}`)
     }
     
     const claimProfile = async () => {
@@ -26,16 +27,23 @@ function SearchPage() {
             alert("Search for summoner first!")
             return
         }
+        
         const response = await fetch('/api/claim_summoner', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                // 1. UPDATE: Add the token to the header (Showing the wristband)
+                'Authorization': `Bearer ${token}` 
             },
-            body: JSON.stringify({ user_id: token, puuid: playerData.puuid})
+            // 2. UPDATE: Delete user_id from here! Just send the puuid.
+            body: JSON.stringify({ puuid: playerData.puuid }) 
+        })
+        
+        if (response.ok) {
+            alert('Profile Claimed!')
+        } else {
+            alert('Failed to claim profile. Are you sure your token is valid?')
         }
-
-        )
-        alert('Profile Claimed!')
     }
 
     return (
@@ -58,4 +66,5 @@ function SearchPage() {
         </div>
     )
 }
-export default SearchPage   
+
+export default SearchPage

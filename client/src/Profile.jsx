@@ -8,7 +8,15 @@ function Profile() {
 
     const fetchProfile = async () => {
         if (!token) return
-        const response = await fetch(`/api/profile/${token}`)
+        
+        // 1. UPDATE: Change URL to /me and pass the JWT in the Authorization header
+        const response = await fetch('/api/profile/me', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}` 
+            }
+        })
+        
         if (response.ok) {
             const data = await response.json()
             setPlayerData(data)
@@ -16,21 +24,23 @@ function Profile() {
         setLoading(false)
     }
 
-    // Fetch the profile immediately when the component mounts
     useEffect(() => {
         fetchProfile()
     }, [token])
 
     const refreshMyStats = async () => {
+        // 2. UPDATE: Add the token to headers, and DELETE the body completely
         const response = await fetch('/api/refresh_summoner', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: token })
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` 
+            }
         })
         
         if (response.ok) {
             alert('Stats Refreshed!')
-            fetchProfile() // Re-fetch to update the PlayerCard instantly
+            fetchProfile() 
         } else {
             alert('Failed to refresh stats.')
         }
