@@ -1,3 +1,7 @@
+import os
+import jwt
+import datetime
+from functools import wraps
 from flask import Flask, jsonify, request
 from riot_client import get_riot_account, get_rank_data
 from db_client import save_summoner, get_university_id, create_user, get_leaderboard, get_user_by_email, claim_summoner_, update_summoner_rank, get_summoner_by_user, get_profile_by_user
@@ -6,6 +10,32 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app) # enable CORS for all routes
+
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'super-secret-dev-key')
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+        auth_header = request.headers.get('Authorization')
+        
+        if auth_header and auth_header.startswith('Bearer '):
+            token = auth_header.split(" ")[1]
+            
+        if not token:
+            return jsonify({'error': 'Token is missing!'}), 401
+        
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+            current_user_id = data['user_id']
+        except jwt.ExpiredSignatureError:
+            return jsonify({'error': 'Token has expired! Please Log in again.'}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({'error': 'Token is invalid!'}), 401
+        
+        return f(current_user_id, *args, **kwargs)
+    return decorated
+
 def parse_rank_data(rank_list):
     """Returns a dictionary containing pertinent rank data (tier, rank, lp) 
 
@@ -123,38 +153,29 @@ def login_user():
     user_id, stored_hash, uni_id = result # if user is found, unpack the stored hash and uni_id for that user
     if not check_password(password, stored_hash): 
         return jsonify({"error": "Incorrect Password!"}), 401 # if given pass and the hashed pass don't match, return unauthorized
-    return jsonify({"token": user_id, "uni_id": uni_id}) # if all checks, return token for auth and uni_if for frontend use
+    
+    token = jwt.encode({
+        'user_id': user_id,
+        'exp': data.datetime.now(datetime.utcnow() + datetime.timedelta(hours=24)) # token expires in 24 hours
+    }, app.config['SECRET_KEY'], algorithm="HS256") # create the token using the user_id and the secret key
+    return jsonify({"token": token, "uni_id": uni_id}) # if all checks, return token for auth and uni_if for frontend use
 
 @app.route('/api/claim_summoner', methods=['POST'])
-def claim_summoner():
-    """Allows user to claim summoner
-    
-    Args (Json):
-    user_id (int): The user's ID (token from login)
-    puuid (str): The puuid of the summoner they want to claim
-
-    Returns:
-        Response: JSON response indicating the success or failure of the operation
-    """
-    # get user_id and puuid from request body
+@token_required
+def claim_summoner(current_user_id):
     data = request.get_json()
-    user_id, puuid = data['user_id'], data['puuid']
+    puuid = data['puuid'] # We no longer ask for user_id here!
     
-    # claim the summoner by associating the puuid with the user_id in the database
-    claim_summoner_(user_id, puuid)
-    return jsonify({'message': "Profile claimed!"}) # if all checks, return success message
+    claim_summoner_(current_user_id, puuid)
+    return jsonify({'message': "Profile claimed!"})
 
 @app.route('/api/refresh_summoner', methods=['POST'])
-def refresh_summoner():
-    """Takes existing summoner and updates rank info from Riot API and update in database"""
-    data = request.get_json()
-    user_id = data['user_id']
-    
-    puuid = get_summoner_by_user(user_id)
+@token_required
+def refresh_summoner(current_user_id):
+    puuid = get_summoner_by_user(current_user_id)
     rank = get_rank_data(puuid)
     clean_rank = parse_rank_data(rank)
     
-    # ADDED the wins and losses here!
     update_summoner_rank(
         puuid, 
         clean_rank['rankTier'], 
@@ -165,15 +186,14 @@ def refresh_summoner():
     )
     return jsonify({'message': "Summoner Updated!"})
 
-@app.route('/api/profile/<user_id>', methods=['GET'])
-def get_user_profile(user_id):
-    """Fetches a user's claimed summoner profile."""
-    profile = get_profile_by_user(user_id)
+@app.route('/api/profile/me', methods=['GET'])
+@token_required
+def get_user_profile(current_user_id):
+    profile = get_profile_by_user(current_user_id)
     
     if not profile:
         return jsonify({"error": "Profile not found"}), 404
         
-    # ADDED wins and losses to the JSON response!
     return jsonify({
         "gameName": profile['game_name'],
         "tagLine": profile['tag'],
