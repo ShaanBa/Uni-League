@@ -2,38 +2,68 @@ import React from 'react';
 import './PlayerCard.css';
 
 function PlayerCard({ data }) {
-    // Calculate Win Rate
-    const totalGames = data.wins + data.losses;
-    const winRate = totalGames > 0 ? Math.round((data.wins / totalGames) * 100) : 0;
+    if (!data) return null;
 
-    // Get the Rank Icon from a community CDN
-    const rankIconUrl = `https://raw.githubusercontent.com/CommunityDragon/CanisBackery/master/data/assets/ux/mastery/mastery_icon_${data.rankTier.toLowerCase()}.png`;
+    // Helper to color-code the rank text
+    const getRankColor = (tier) => {
+        const colors = {
+            'IRON': '#514f4e',
+            'BRONZE': '#8c513a',
+            'SILVER': '#80989d',
+            'GOLD': '#cd8837',
+            'PLATINUM': '#4e9996',
+            'EMERALD': '#2a7c46',
+            'DIAMOND': '#576bce',
+            'MASTER': '#9d48e0',
+            'GRANDMASTER': '#d31a45',
+            'CHALLENGER': '#f4c874',
+            'UNRANKED': '#a0a6b1'
+        };
+        return colors[tier] || colors['UNRANKED'];
+    };
+
+    const rankColor = getRankColor(data.rankTier);
+    
+    // Stable URL for Rank Emblems from CommunityDragon
+    // Note: We use .toLowerCase() because the filenames are lowercase
+    const tier = data.rankTier.toLowerCase();
+    const iconUrl = `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblem/emblem-${tier}.png`;
 
     return (
-        <div className="player-card">
-            <div className="rank-emblem-container">
-                <img 
-                    src={rankIconUrl} 
-                    alt={data.rankTier} 
-                    className="rank-emblem"
-                    onError={(e) => { e.target.src = 'https://raw.githubusercontent.com/CommunityDragon/CanisBackery/master/data/assets/ux/mastery/mastery_icon_unranked.png'; }}
-                />
-            </div>
-            
-            <div className="player-info">
-                <h3>{data.gameName} <span className="tagline">#{data.tagLine}</span></h3>
-                <p className="rank-text">{data.rankTier} {data.rankDivision}</p>
-                <p className="lp-text">{data.lp} LP</p>
-            </div>
-
-            <div className="stats-container">
-                <div className="stat-item">
-                    <span className="stat-label">Win Rate</span>
-                    <span className="stat-value">{winRate}%</span>
+        <div className="player-card" style={{ borderLeft: `6px solid ${rankColor}` }}>
+            <div className="player-body">
+                <div className="rank-icon-container">
+                    <img 
+                        src={iconUrl} 
+                        alt={data.rankTier} 
+                        className="rank-icon"
+                        // Fallback to unranked if the specific tier image fails
+                        onError={(e) => { 
+                            e.target.src = 'https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblem/emblem-unranked.png'; 
+                        }} 
+                    />
                 </div>
-                <div className="stat-item">
-                    <span className="stat-label">W/L</span>
-                    <span className="stat-value">{data.wins}W {data.losses}L</span>
+                
+                <div className="player-info">
+                    <div className="player-header">
+                        <h2>{data.gameName}</h2>
+                        <span className="tag-line">#{data.tagLine}</span>
+                    </div>
+                    
+                    <div className="rank-details">
+                        <div className="tier-text" style={{ color: rankColor }}>
+                            {data.rankTier} {data.rankDivision !== 'N/A' ? data.rankDivision : ''}
+                        </div>
+                        {data.rankTier !== 'UNRANKED' && (
+                            <div className="lp-stats">
+                                <span className="lp-value">{data.lp} LP</span>
+                                <span className="win-loss">
+                                    {data.wins}W - {data.losses}L 
+                                    ({data.wins + data.losses > 0 ? Math.round((data.wins / (data.wins + data.losses)) * 100) : 0}%)
+                                </span>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
