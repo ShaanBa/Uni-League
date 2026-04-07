@@ -1,47 +1,41 @@
 import React from 'react';
-import './PlayerCard.css'; // We'll create this file next!
+import './PlayerCard.css';
 
 function PlayerCard({ data }) {
-    if (!data) return null;
+    // Calculate Win Rate
+    const totalGames = data.wins + data.losses;
+    const winRate = totalGames > 0 ? Math.round((data.wins / totalGames) * 100) : 0;
 
-    // A helper function to color-code the rank text
-    const getRankColor = (tier) => {
-        const colors = {
-            'IRON': '#514f4e',
-            'BRONZE': '#8c513a',
-            'SILVER': '#80989d',
-            'GOLD': '#cd8837',
-            'PLATINUM': '#4e9996',
-            'EMERALD': '#2a7c46',
-            'DIAMOND': '#576bce',
-            'MASTER': '#9d48e0',
-            'GRANDMASTER': '#d31a45',
-            'CHALLENGER': '#f4c874',
-            'UNRANKED': '#a0a6b1'
-        };
-        return colors[tier] || colors['UNRANKED'];
-    };
-
-    const rankColor = getRankColor(data.rankTier);
+    // Get the Rank Icon from a community CDN
+    const rankIconUrl = `https://raw.githubusercontent.com/CommunityDragon/CanisBackery/master/data/assets/ux/mastery/mastery_icon_${data.rankTier.toLowerCase()}.png`;
 
     return (
         <div className="player-card">
-            <div className="player-header">
-                <h2>{data.gameName}</h2>
-                <span className="tag-line">#{data.tagLine}</span>
+            <div className="rank-emblem-container">
+                <img 
+                    src={rankIconUrl} 
+                    alt={data.rankTier} 
+                    className="rank-emblem"
+                    onError={(e) => { e.target.src = 'https://raw.githubusercontent.com/CommunityDragon/CanisBackery/master/data/assets/ux/mastery/mastery_icon_unranked.png'; }}
+                />
             </div>
             
-<div className="rank-info" style={{ borderColor: rankColor }}>
-    <div className="tier-text" style={{ color: rankColor }}>
-        {data.rankTier} {data.rankDivision !== 'N/A' ? data.rankDivision : ''}
-    </div>
-    {data.rankTier !== 'UNRANKED' && (
-        <div className="lp-text">
-            {data.lp} LP | {data.wins}W - {data.losses}L 
-            ({data.wins + data.losses > 0 ? Math.round((data.wins / (data.wins + data.losses)) * 100) : 0}%)
-        </div>
-    )}
-</div>
+            <div className="player-info">
+                <h3>{data.gameName} <span className="tagline">#{data.tagLine}</span></h3>
+                <p className="rank-text">{data.rankTier} {data.rankDivision}</p>
+                <p className="lp-text">{data.lp} LP</p>
+            </div>
+
+            <div className="stats-container">
+                <div className="stat-item">
+                    <span className="stat-label">Win Rate</span>
+                    <span className="stat-value">{winRate}%</span>
+                </div>
+                <div className="stat-item">
+                    <span className="stat-label">W/L</span>
+                    <span className="stat-value">{data.wins}W {data.losses}L</span>
+                </div>
+            </div>
         </div>
     );
 }

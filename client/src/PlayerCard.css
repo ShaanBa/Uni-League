@@ -1,59 +1,58 @@
 .player-card {
-    background: linear-gradient(135deg, #1e2328 0%, #010a13 100%);
-    border: 1px solid var(--border-color);
-    border-radius: 2px;
-    padding: 2.5rem;
-    text-align: center;
-    max-width: 450px;
-    margin: 2rem auto;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
-    position: relative;
-    overflow: hidden;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: #1a1a1a;
+    border: 1px solid #c89b3c; /* Hextech Gold */
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    color: white;
+    margin: 10px 0;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
 }
 
-.player-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 1), 0 0 15px rgba(200, 170, 110, 0.1);
-    border-color: var(--gold-primary);
+.rank-emblem {
+    width: 80px;
+    height: 80px;
 }
 
-.player-header h2 {
-    font-size: 2.2rem;
-    margin-bottom: 0.2rem;
-    color: var(--text-light);
-    letter-spacing: 3px;
+.player-info h3 {
+    margin: 0;
+    font-size: 1.5rem;
 }
 
-.tag-line {
-    color: var(--gold-primary);
+.tagline {
+    color: #888;
     font-size: 1rem;
-    letter-spacing: 2px;
-    font-family: 'Cinzel', serif;
 }
 
-.rank-info {
-    margin-top: 2rem;
-    padding-top: 2rem;
-    /* The border-top color is overridden dynamically in PlayerCard.jsx */
-    border-top: 2px solid var(--border-color); 
+.rank-text {
+    color: #c89b3c;
+    font-weight: bold;
+    margin: 5px 0;
+}
+
+.stats-container {
+    margin-left: auto;
+    display: flex;
+    gap: 20px;
+    border-left: 1px solid #333;
+    padding-left: 20px;
+}
+
+.stat-item {
     display: flex;
     flex-direction: column;
-    gap: 0.8rem;
-    background: radial-gradient(ellipse at top, rgba(255,255,255,0.03) 0%, transparent 70%);
+    align-items: center;
 }
 
-.tier-text {
-    font-family: 'Cinzel', serif;
-    font-size: 1.8rem;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+.stat-label {
+    font-size: 0.75rem;
+    color: #888;
+    text-transform: uppercase;
 }
 
-.lp-text {
-    color: var(--text-light);
-    font-size: 1.1rem;
-    font-weight: 500;
-    letter-spacing: 1px;
+.stat-value {
+    font-size: 1.2rem;
+    font-weight: bold;
 }
