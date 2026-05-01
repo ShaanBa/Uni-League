@@ -11,8 +11,10 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app) # enable CORS for all routes
 
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'super-secret-dev-key')
-
+secret_key = os.environ.get("SECRET_KEY")
+if not secret_key:
+    raise RuntimeError("SECRET KEY env variable is required!")
+app.config['SECRET_KEY'] = secret_key
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
