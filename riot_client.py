@@ -18,6 +18,11 @@ def get_rank_data(puuid):
     r = requests.get(f"https://na1.api.riotgames.com/lol/league/v4/entries/by-puuid/{puuid}", headers={"X-Riot-Token": api_key})
     return r.json() 
 
+def get_summoner_metadata(puuid):
+    api_key = os.getenv("RIOT_API_KEY")
+    r = requests.get(f"https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/{puuid}", headers={"X-Riot-Token": api_key})
+    return r.json()
+
 def main():
     account = get_riot_account('PoggyWoggyDoggy6', 'NA1')
     puuid = account['puuid']

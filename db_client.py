@@ -33,8 +33,8 @@ def save_summoner(data: dict):
         #below query uses ON CONFLICT, because if summoner exists, we should update their info
         # so in the case of existing summoner, update their game name, tag, and rank info. In the case of new summoner, just insert them as normal
         query = ("""
-            INSERT INTO summoners (puuid, game_name, tag, rank_tier, rank_division, lp, wins, losses)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s) 
+            INSERT INTO summoners (puuid, game_name, tag, rank_tier, rank_division, lp, wins, losses, profile_icon_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) 
             ON CONFLICT (puuid) 
             DO UPDATE SET
                 game_name = EXCLUDED.game_name,
@@ -43,10 +43,11 @@ def save_summoner(data: dict):
                 rank_division = EXCLUDED.rank_division,
                 lp = EXCLUDED.lp,
                 wins = EXCLUDED.wins,
-                losses = EXCLUDED.losses
+                losses = EXCLUDED.losses,
+                profile_icon_id = EXCLUDED.profile_icon_id
             """)
         # the value is a tuple of the data we want to insert/update, in the same order as the query placeholders
-        value = (data['puuid'], data['gameName'], data['tagLine'], data['rankTier'], data['rankDivision'], data['lp'], data['wins'], data['losses'])
+        value = (data['puuid'], data['gameName'], data['tagLine'], data['rankTier'], data['rankDivision'], data['lp'], data['wins'], data['losses'], data['profile_icon_id'])
         cur.execute(query, value)
     
 def get_university_id(domain):
@@ -194,7 +195,7 @@ def get_summoner_by_user(user_id):
         data = cur.fetchone()
         return data[0]
 
-def update_summoner_rank(puuid, rank_tier, rank_division, lp, wins, losses):
+def update_summoner_rank(puuid, rank_tier, rank_division, lp, wins, losses, profile_icon_id):
     '''
     Updates the rank information of a summoner in the database.
     Args: puuid (str): The puuid of the summoner whose rank information is to be updated.
@@ -208,10 +209,10 @@ def update_summoner_rank(puuid, rank_tier, rank_division, lp, wins, losses):
         cur = con.cursor()
         query = '''
         UPDATE summoners
-        SET rank_tier = %s, rank_division = %s, lp = %s, wins = %s, losses = %s
+        SET rank_tier = %s, rank_division = %s, lp = %s, wins = %s, losses = %s, profile_icon_id = %s
         WHERE puuid = %s
         '''
-        cur.execute(query, (rank_tier, rank_division, lp, wins, losses, puuid))
+        cur.execute(query, (rank_tier, rank_division, lp, wins, losses, profile_icon_id, puuid))
 
 def get_profile_by_user(user_id):
     '''
@@ -220,7 +221,7 @@ def get_profile_by_user(user_id):
     with get_db_connection() as con:
         cur = con.cursor(cursor_factory=RealDictCursor)
         query = """
-            SELECT game_name, tag, rank_tier, rank_division, lp, wins, losses
+            SELECT game_name, tag, rank_tier, rank_division, lp, wins, losses, profile_icon_id
             FROM summoners 
             WHERE user_id = %s
         """

@@ -3,7 +3,7 @@ import jwt
 import datetime
 from functools import wraps
 from flask import Flask, jsonify, request
-from riot_client import get_riot_account, get_rank_data
+from riot_client import get_riot_account, get_rank_data, get_summoner_metadata
 from db_client import save_summoner, get_university_id, create_user, get_leaderboard, get_user_by_email, claim_summoner_, update_summoner_rank, get_summoner_by_user, get_profile_by_user
 from auth_utils import validate_email, hash_password, check_password
 from flask_cors import CORS
@@ -73,6 +73,7 @@ def search_user(game_name, tag_line):
     account = get_riot_account(game_name, tag_line) 
     puuid = account['puuid']
     rank = get_rank_data(puuid)
+    metadata = get_summoner_metadata(puuid)
     clean_rank = parse_rank_data(rank) # the rank is a cluttered object so we clean it to only get what we need
     
     # create the summoner format
@@ -84,7 +85,8 @@ def search_user(game_name, tag_line):
         "rankDivision": clean_rank['rankDivision'],
         "lp": clean_rank['lp'],
         "wins": clean_rank['wins'],
-        "losses": clean_rank['losses']
+        "losses": clean_rank['losses'],
+        "profile_icon_id": metadata['profileIconId']
 
     }
     save_summoner(full_summoner) #add to db
@@ -170,6 +172,7 @@ def claim_summoner(current_user_id):
 @token_required
 def refresh_summoner(current_user_id):
     puuid = get_summoner_by_user(current_user_id)
+    metadata = get_summoner_metadata(puuid)
     rank = get_rank_data(puuid)
     clean_rank = parse_rank_data(rank)
     
@@ -179,7 +182,9 @@ def refresh_summoner(current_user_id):
         clean_rank['rankDivision'], 
         clean_rank['lp'],
         clean_rank['wins'],
-        clean_rank['losses']
+        clean_rank['losses'],
+        metadata['profileIconId']
+        
     )
     return jsonify({'message': "Summoner Updated!"})
 
@@ -198,7 +203,8 @@ def get_user_profile(current_user_id):
         "rankDivision": profile['rank_division'],
         "lp": profile['lp'],
         "wins": profile.get('wins', 0),
-        "losses": profile.get('losses', 0)
+        "losses": profile.get('losses', 0),
+        "profile_icon_id": profile.get('profile_icon_id', 29)
     })
     
     
