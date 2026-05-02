@@ -26,47 +26,34 @@ function PlayerCard({ data }) {
     
     // Stable URL for Rank Emblems from CommunityDragon
     // Note: We use .toLowerCase() because the filenames are lowercase
-    const tier = data.rankTier.toLowerCase();
-    const iconUrl = `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblem/emblem-${tier}.png`;
+    const iconUrl = `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${data.profile_icon_id}.jpg`;
 
     return (
-        <div className="player-card" style={{ borderLeft: `6px solid ${rankColor}` }}>
-            <div className="player-body">
-                <div className="rank-icon-container">
-                    <img 
-                        src={iconUrl} 
-                        alt={data.rankTier} 
-                        className="rank-icon"
-                        // Fallback to unranked if the specific tier image fails
-                        onError={(e) => { 
-                            e.target.src = 'https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblem/emblem-unranked.png'; 
-                        }} 
-                    />
-                </div>
-                
-                <div className="player-info">
-                    <div className="player-header">
-                        <h2>{data.gameName}</h2>
-                        <span className="tag-line">#{data.tagLine}</span>
-                    </div>
-                    
-                    <div className="rank-details">
-                        <div className="tier-text" style={{ color: rankColor }}>
-                            {data.rankTier} {data.rankDivision !== 'N/A' ? data.rankDivision : ''}
-                        </div>
-                        {data.rankTier !== 'UNRANKED' && (
-                            <div className="lp-stats">
-                                <span className="lp-value">{data.lp} LP</span>
-                                <span className="win-loss">
-                                    {data.wins}W - {data.losses}L 
-                                    ({data.wins + data.losses > 0 ? Math.round((data.wins / (data.wins + data.losses)) * 100) : 0}%)
-                                </span>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
+      <div className="player-card">
+        <img
+          className="profile-icon"
+          src={iconUrl}
+          alt={`${data.gameName} profile icon`}
+        />
+
+        <div className="player-name-row">
+          {data.gameName}#{data.tagLine}
         </div>
+
+        <div className="rank-line" style={{ color: rankColor }}>
+          {data.rankTier}
+          {data.rankDivision && data.rankDivision !== 'N/A' ? ` ${data.rankDivision}` : ''}
+        </div>
+
+        <div className="profile-stats-grid">
+          <div className="stat-box">
+            <span className="stat-value">{data.lp}</span>
+            <span className="stat-label"> LP</span>
+          </div>
+          {data.wins}W - {data.losses}L
+          ({data.wins + data.losses > 0 ? Math.round((data.wins / (data.wins + data.losses)) * 100) : 0}%)
+        </div>
+      </div>
     );
 }
 
