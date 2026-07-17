@@ -26,3 +26,5 @@ CREATE TABLE summoners (
     losses INTEGER NOT NULL DEFAULT 0,
     profile_icon_id INTEGER NULL DEFAULT 29 
 );
+
+CREATE INDEX IF NOT EXISTS idx_users_uni_id ON users(uni_id);

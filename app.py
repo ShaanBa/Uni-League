@@ -12,7 +12,8 @@ from db_client import (
     get_summoner_by_user, get_profile_by_user, init_db,
     set_user_verification_code, get_user_verification, verify_user_email,
     create_pending_claim, get_pending_claim, delete_pending_claim,
-    get_university_leaderboard, get_university_details, get_university_summoners
+    get_university_leaderboard, get_university_details, get_university_summoners,
+    get_db_connection
 )
 from auth_utils import validate_email, hash_password, check_password, validate_password_strength
 from flask_cors import CORS
@@ -140,10 +141,6 @@ def register_user():
         email = data['email'].strip().lower()
         password = data['password']
         
-        # Check if email is already registered
-        if get_user_by_email(email):
-            return jsonify({"error": "Email is already registered!"}), 400
-        
         # Validate password strength
         is_strong, pass_err = validate_password_strength(password)
         if not is_strong:
@@ -151,29 +148,29 @@ def register_user():
             
         # call validate_email to check validity of the email and also get the domain for university lookup
         is_valid, extracted_domain = validate_email(email)
-        
         if not is_valid:
             return jsonify({"error": "Please enter a valid email address."}), 400 
             
-        uni_id = get_university_id(extracted_domain) #get the uni id by looking up domain in db
-        if not uni_id:
-            return jsonify({
-                "error": f"The domain '{extracted_domain}' is not registered in our collegiate system. Please register with your student email."
-            }), 400
-            
-        hashed_pass = hash_password(password) 
-        user = create_user(email, hashed_pass, uni_id)
-        if not user:
-            return jsonify({"error": "Failed to create user account. Please try again."}), 400
-            
-        # Fetch user_id for verification code linkage
-        user_data = get_user_by_email(email)
-        if user_data:
-            user_id = user_data[0]
+        with get_db_connection() as con:
+            # Check if email is already registered
+            if get_user_by_email(email, con=con):
+                return jsonify({"error": "Email is already registered!"}), 400
+                
+            uni_id = get_university_id(extracted_domain, con=con) #get the uni id by looking up domain in db
+            if not uni_id:
+                return jsonify({
+                    "error": f"The domain '{extracted_domain}' is not registered in our collegiate system. Please register with your student email."
+                }), 400
+                
+            hashed_pass = hash_password(password) 
+            user_id = create_user(email, hashed_pass, uni_id, con=con)
+            if not user_id:
+                return jsonify({"error": "Failed to create user account. Please try again."}), 400
+                
             # Generate 6-digit verification pin
             otp_code = f"{random.randint(100000, 999999)}"
             expires_at = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=15)
-            set_user_verification_code(user_id, otp_code, expires_at)
+            set_user_verification_code(user_id, otp_code, expires_at, con=con)
             
             # Simulate sending verification email
             print(f"\n=======================================================")

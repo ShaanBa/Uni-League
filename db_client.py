@@ -9,17 +9,43 @@ load_dotenv()
 
 @contextmanager
 def get_db_connection():
-        '''
-        Context manager for database connections
-        this allows the code to be super modular
-        and clean, and also handling connection closing and committing automatically
-        '''
-        con = psycopg2.connect(os.environ.get("DATABASE_URL")) # connect to db using credentials from .env file
-        try:
-            yield con # give back the con for the block to use 
-        finally:
-            con.commit() # commit any changes made in the block
-            con.close() # close the connection when done for leak prevention
+    '''
+    Context manager for database connections
+    this allows the code to be super modular
+    and clean, and also handling connection closing and committing automatically
+    '''
+    con = psycopg2.connect(os.environ.get("DATABASE_URL")) # connect to db using credentials from .env file
+    try:
+        yield con # give back the con for the block to use 
+        con.commit() # commit any changes made in the block
+    except Exception:
+        con.rollback()
+        raise
+    finally:
+        con.close() # close the connection when done for leak prevention
+
+@contextmanager
+def db_session(con=None):
+    '''
+    Context manager for database operations to reuse an existing connection or open a new one.
+    '''
+    if con is not None:
+        yield con
+    else:
+        with get_db_connection() as new_con:
+            yield new_con
+
+def get_candidate_domains(domain: str):
+    '''
+    Given a domain like "sub.dept.usf.edu", returns a list of candidate domains:
+    ['sub.dept.usf.edu', 'dept.usf.edu', 'usf.edu']
+    '''
+    parts = domain.split('.')
+    candidates = []
+    # keep suffixes with at least 2 parts (e.g. usf.edu, not edu)
+    for i in range(len(parts) - 1):
+        candidates.append('.'.join(parts[i:]))
+    return candidates
 
 def save_summoner(data: dict):
     '''
@@ -51,44 +77,79 @@ def save_summoner(data: dict):
         value = (data['puuid'], data['gameName'], data['tagLine'], data['rankTier'], data['rankDivision'], data['lp'], data['wins'], data['losses'], data['profile_icon_id'], data.get('region', 'na1'))
         cur.execute(query, value)
     
-def get_university_id(domain):
+def get_university_id(domain, con=None):
     '''
     Gets the UNI_ID from universities table, used in registration to link user to uni 
     Args: domain (str): domain from the user email (eg ku.edu), used to lookup uni_id in universities table
     Returns: int or None: the uni_id if found, None if not found (which we use to prevent registration with emails from unis not in our db)
     '''
-    with get_db_connection() as con:
-        cur = con.cursor()
-        # SQL suffix matching allows subdomains (e.g. mail.usf.edu matches usf.edu)
-        query = "SELECT uni_id FROM universities WHERE uni_domain = %s OR %s LIKE '%.' || uni_domain"
-        cur.execute(query, (domain, domain)) 
-        result = cur.fetchone()
+    if not domain:
+        return None
+    candidates = get_candidate_domains(domain)
+    if not candidates:
+        return None
         
-        # if there is a result it will give the uni_id, if no result, its None (not allowed to register with email from unis not in our db)
-        if result:
-            return result[0] 
-        else:
+    with db_session(con) as session_con:
+        cur = session_con.cursor()
+        # Optimize by using ANY with B-tree index lookup instead of LIKE '%.' || uni_domain full-table scans
+        query = "SELECT uni_id, uni_domain FROM universities WHERE uni_domain = ANY(%s)"
+        cur.execute(query, (candidates,))
+        results = cur.fetchall()
+        
+        if not results:
             return None
+            
+        parsed_results = []
+        for row in results:
+            if isinstance(row, dict):
+                uni_id = row.get('uni_id')
+                uni_domain = row.get('uni_domain')
+            elif hasattr(row, 'keys') and hasattr(row, 'values'):
+                uni_id = row['uni_id']
+                uni_domain = row['uni_domain']
+            elif isinstance(row, (tuple, list)):
+                uni_id = row[0]
+                uni_domain = row[1] if len(row) > 1 else None
+            else:
+                continue
+            parsed_results.append((uni_id, uni_domain))
+            
+        parsed_results = [r for r in parsed_results if r[0] is not None]
+        if not parsed_results:
+            return None
+            
+        # Select the most specific match (longest domain name matching)
+        parsed_results.sort(key=lambda x: len(x[1]) if x[1] else 0, reverse=True)
+        return parsed_results[0][0]
 
-def create_user(email, password_hash, university_id):
+def create_user(email, password_hash, university_id, con=None):
     '''
     Creates user in the db, used in registration endpoint after validating email and hashing password.
     Args: 
     email (str): the user's email, 
     password_hash (str): the hashed password
     university_id (int): the university id from get_university_id function, used to link user to uni in db
-    return: bool: True if user created successfully, False if there was an error (such as email already existing in db)
+    return: int or None: the user_id if user created successfully, None if there was an error (such as email already existing in db)
     '''
-    with get_db_connection() as con:
-        cur = con.cursor()
+    with db_session(con) as session_con:
+        cur = session_con.cursor()
         try:
-            # try to insert user into db, email requires uniqueness, so throw error if email already exists (which we catch and return false for registration failure)
-            query = "INSERT INTO users (user_email, password_hash, uni_id, is_verified) VALUES (%s, %s, %s, %s)"  
+            # try to insert user into db, email requires uniqueness, so throw error if email already exists (which we catch and return None for registration failure)
+            query = "INSERT INTO users (user_email, password_hash, uni_id, is_verified) VALUES (%s, %s, %s, %s) RETURNING user_id"  
             cur.execute(query, (email, password_hash, university_id, False))  
-            return True
+            result = cur.fetchone()
+            if not result:
+                return None
+            if isinstance(result, dict):
+                return result.get('user_id')
+            elif hasattr(result, 'keys') and hasattr(result, 'values'):
+                return result['user_id']
+            elif isinstance(result, (tuple, list)):
+                return result[0] if len(result) > 0 else None
+            return None
         except Exception as e:
             print(f'Error creating user: {e}')
-            return False
+            return None
 
 def calculate_score(tier, division):
     '''
@@ -145,18 +206,29 @@ def get_leaderboard(uni_id):
         sorted_list = sorted(summoners, key=lambda x: x['score'], reverse=True)
         return sorted_list
 
-def get_user_by_email(email):
+def get_user_by_email(email, con=None):
     '''
     Gets the user data from the database by email, used in login to get the user's hashed password and university id for authentication and frontend use.
     Args: email (str): the user's email, used to lookup the user in the database
     Returns: tuple or None: A tuple containing the user's id, hashed password, and university id if found, None if no user with that email exists (used to prevent login with non-existent email)
     '''
-    with get_db_connection() as con:
-        cur = con.cursor()
+    with db_session(con) as session_con:
+        cur = session_con.cursor()
         # simple query to get the user_id, password_hash, and uni_id for the given email, used for authentication and frontend use after login
         query = "SELECT user_id, password_hash, uni_id FROM users WHERE user_email = %s"
         cur.execute(query, (email,))
         data = cur.fetchone()
+        if not data:
+            return None
+        if isinstance(data, dict):
+            return (data.get('user_id'), data.get('password_hash'), data.get('uni_id'))
+        elif hasattr(data, 'keys') and hasattr(data, 'values'):
+            return (data['user_id'], data['password_hash'], data['uni_id'])
+        elif isinstance(data, (tuple, list)):
+            user_id = data[0] if len(data) > 0 else None
+            password_hash = data[1] if len(data) > 1 else None
+            uni_id = data[2] if len(data) > 2 else None
+            return (user_id, password_hash, uni_id)
         return data
 
 def claim_summoner_(user_id, puuid):
@@ -200,7 +272,17 @@ def get_summoner_by_user(user_id):
         '''
         cur.execute(query, (user_id,))
         data = cur.fetchone()
-        return (data[0], data[1]) if data else (None, None)
+        if not data:
+            return (None, None)
+        if isinstance(data, dict):
+            return (data.get('puuid'), data.get('region'))
+        elif hasattr(data, 'keys') and hasattr(data, 'values'):
+            return (data['puuid'], data['region'])
+        elif isinstance(data, (tuple, list)):
+            puuid = data[0] if len(data) > 0 else None
+            region = data[1] if len(data) > 1 else None
+            return (puuid, region)
+        return (None, None)
 
 def update_summoner_rank(puuid, rank_tier, rank_division, lp, wins, losses, profile_icon_id):
     '''
@@ -247,6 +329,9 @@ def init_db():
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_code VARCHAR(6)")
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_code_expires TIMESTAMP")
         
+        # Add index on users(uni_id) to optimize university lookups and leaderboard queries
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_users_uni_id ON users(uni_id)")
+        
         # Add region column to summoners table
         cur.execute("ALTER TABLE summoners ADD COLUMN IF NOT EXISTS region VARCHAR(8) DEFAULT 'na1'")
         
@@ -261,9 +346,9 @@ def init_db():
             )
         """)
 
-def set_user_verification_code(user_id, code, expires_at):
-    with get_db_connection() as con:
-        cur = con.cursor()
+def set_user_verification_code(user_id, code, expires_at, con=None):
+    with db_session(con) as session_con:
+        cur = session_con.cursor()
         query = """
             UPDATE users 
             SET verification_code = %s, verification_code_expires = %s 
