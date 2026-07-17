@@ -287,18 +287,12 @@ def get_summoner_by_user(user_id):
 def update_summoner_rank(puuid, rank_tier, rank_division, lp, wins, losses, profile_icon_id):
     '''
     Updates the rank information of a summoner in the database.
-    Args: puuid (str): The puuid of the summoner whose rank information is to be updated.
-          rank_tier (str): The new rank tier for the summoner.
-          rank_division (str): The new rank division for the summoner.
-          lp (int): The new league points for the summoner.
-          wins (int): The new number of wins for the summoner.
-          losses (int): The new number of losses for the summoner.
     '''
     with get_db_connection() as con:
         cur = con.cursor()
         query = '''
         UPDATE summoners
-        SET rank_tier = %s, rank_division = %s, lp = %s, wins = %s, losses = %s, profile_icon_id = %s
+        SET rank_tier = %s, rank_division = %s, lp = %s, wins = %s, losses = %s, profile_icon_id = %s, last_refreshed = CURRENT_TIMESTAMP
         WHERE puuid = %s
         '''
         cur.execute(query, (rank_tier, rank_division, lp, wins, losses, profile_icon_id, puuid))
@@ -310,7 +304,7 @@ def get_profile_by_user(user_id):
     with get_db_connection() as con:
         cur = con.cursor(cursor_factory=RealDictCursor)
         query = """
-            SELECT puuid, game_name, tag, rank_tier, rank_division, lp, wins, losses, profile_icon_id, region
+            SELECT puuid, game_name, tag, rank_tier, rank_division, lp, wins, losses, profile_icon_id, region, last_refreshed
             FROM summoners 
             WHERE user_id = %s
         """
@@ -334,6 +328,9 @@ def init_db():
         
         # Add region column to summoners table
         cur.execute("ALTER TABLE summoners ADD COLUMN IF NOT EXISTS region VARCHAR(8) DEFAULT 'na1'")
+        
+        # Add last_refreshed column to summoners table
+        cur.execute("ALTER TABLE summoners ADD COLUMN IF NOT EXISTS last_refreshed TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
         
         # Create pending_claims table for Riot summoner third party verification
         cur.execute("""

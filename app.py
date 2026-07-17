@@ -364,10 +364,27 @@ def refresh_summoner(current_user_id):
     if not is_verified:
         return jsonify({"error": "Please verify your student email first!"}), 403
         
-    puuid, region = get_summoner_by_user(current_user_id)
-    if not puuid:
+    profile = get_profile_by_user(current_user_id)
+    if not profile or not profile.get('puuid'):
         return jsonify({'error': "No summoner claimed for this user yet!"}), 400
         
+    # Enforce a 1-hour cooldown on manual refreshes to protect Riot API rate limits
+    last_refreshed = profile.get('last_refreshed')
+    if last_refreshed:
+        # Convert both to UTC or timezone-naive for safe comparison
+        now = datetime.datetime.now(last_refreshed.tzinfo) if last_refreshed.tzinfo else datetime.datetime.now()
+        time_since = now - last_refreshed
+        cooldown = datetime.timedelta(hours=1)
+        if time_since < cooldown:
+            remaining_min = int((cooldown - time_since).total_seconds() // 60) + 1
+            return jsonify({
+                "message": f"Summoner stats are already up to date! Try again in {remaining_min} min.",
+                "cooldown_active": True
+            }), 200
+            
+    puuid = profile['puuid']
+    region = profile.get('region', 'na1')
+    
     metadata = get_summoner_metadata(puuid, region)
     rank = get_rank_data(puuid, region)
     clean_rank = parse_rank_data(rank)
@@ -381,9 +398,8 @@ def refresh_summoner(current_user_id):
         clean_rank['wins'],
         clean_rank['losses'],
         profile_icon
-        
     )
-    return jsonify({'message': "Summoner Updated!"})
+    return jsonify({'message': "Summoner Updated!", "cooldown_active": False})
 
 @app.route('/api/profile/me', methods=['GET'])
 @token_required
