@@ -45,10 +45,9 @@ function LandingPage() {
                 <div className="hero-deco-line left"></div>
                 <div className="hero-content">
                     <span className="hero-tag">Collegiate Esports</span>
-                    <h1>Your University.<br/>Your Rift.<br/>Your Legacy.</h1>
+                    <h1>Prove Who Rules<br/>the Rift.</h1>
                     <p className="hero-subtitle">
-                        Link your Riot account, verify your .edu email, and represent
-                        your school on the only inter-university Solo Queue power ranking.
+                        Connect your League profile, verify your student email, and see where your campus stands on the collegiate ladder.
                     </p>
                     <div className="hero-buttons">
                         <Link to="/search" className="hextech-btn hextech-btn-gold">
