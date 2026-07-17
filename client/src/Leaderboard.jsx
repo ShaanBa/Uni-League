@@ -160,12 +160,17 @@ function Leaderboard() {
                 )}
             </div>
 
+            <div className="hextech-divider">
+                <div className="hextech-divider-line"></div>
+                <div className="hextech-divider-diamond"></div>
+            </div>
+
             {/* --- Esports Podium for Top 3 Players --- */}
             {!loading && hasPodium && (
                 <div className="podium-section">
                     <div className="podium-container">
                         {/* 2nd Place */}
-                        <div className="podium-card rank-2" onClick={() => setActivePlayerDetail(leaderboardData[1])}>
+                        <div className="podium-card rank-2 hextech-card" onClick={() => setActivePlayerDetail(leaderboardData[1])}>
                             <div className="podium-rank">2</div>
                             <div className="podium-avatar-wrapper">
                                 <img 
@@ -184,7 +189,7 @@ function Leaderboard() {
                         </div>
 
                         {/* 1st Place */}
-                        <div className="podium-card rank-1" onClick={() => setActivePlayerDetail(leaderboardData[0])}>
+                        <div className="podium-card rank-1 hextech-card" onClick={() => setActivePlayerDetail(leaderboardData[0])}>
                             <div className="podium-crown">👑</div>
                             <div className="podium-rank">1</div>
                             <div className="podium-avatar-wrapper">
@@ -204,7 +209,7 @@ function Leaderboard() {
                         </div>
 
                         {/* 3rd Place */}
-                        <div className="podium-card rank-3" onClick={() => setActivePlayerDetail(leaderboardData[2])}>
+                        <div className="podium-card rank-3 hextech-card" onClick={() => setActivePlayerDetail(leaderboardData[2])}>
                             <div className="podium-rank">3</div>
                             <div className="podium-avatar-wrapper">
                                 <img 
@@ -230,7 +235,7 @@ function Leaderboard() {
                 <div className="podium-section">
                     <div className="podium-container">
                         {/* 2nd Place School */}
-                        <div className="podium-card rank-2" onClick={() => setActiveUniDetail(uniLeaderboardData[1])}>
+                        <div className="podium-card rank-2 hextech-card" onClick={() => setActiveUniDetail(uniLeaderboardData[1])}>
                             <div className="podium-rank">2</div>
                             <div className="podium-avatar-wrapper">
                                 <img 
@@ -253,7 +258,7 @@ function Leaderboard() {
                         </div>
 
                         {/* 1st Place School */}
-                        <div className="podium-card rank-1" onClick={() => setActiveUniDetail(uniLeaderboardData[0])}>
+                        <div className="podium-card rank-1 hextech-card" onClick={() => setActiveUniDetail(uniLeaderboardData[0])}>
                             <div className="podium-crown">👑</div>
                             <div className="podium-rank">1</div>
                             <div className="podium-avatar-wrapper">
@@ -277,7 +282,7 @@ function Leaderboard() {
                         </div>
 
                         {/* 3rd Place School */}
-                        <div className="podium-card rank-3" onClick={() => setActiveUniDetail(uniLeaderboardData[2])}>
+                        <div className="podium-card rank-3 hextech-card" onClick={() => setActiveUniDetail(uniLeaderboardData[2])}>
                             <div className="podium-rank">3</div>
                             <div className="podium-avatar-wrapper">
                                 <img 
@@ -305,7 +310,7 @@ function Leaderboard() {
             {loading ? (
                 <div style={{ margin: '3rem auto', fontStyle: 'italic', color: 'var(--gold-primary)' }}>Loading standings...</div>
             ) : (
-                <div className="leaderboard-wrapper">
+                <div className="leaderboard-wrapper hextech-card">
                     {standingsType === 'individual' ? (
                         <table className="hextech-table">
                             <thead>

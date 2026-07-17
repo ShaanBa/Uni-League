@@ -58,7 +58,7 @@ function LandingPage() {
                             const logoUrl = school.uni_logo_link || `https://www.google.com/s2/favicons?domain=${school.uni_domain}&sz=128`;
                             
                             return (
-                                <div key={school.uni_id} className={`podium-column ${rankClass}`}>
+                                <div key={school.uni_id} className={`podium-column ${rankClass} hextech-card`}>
                                     <div className="podium-badge">{badgeChar}</div>
                                     <img 
                                         className="podium-logo" 
@@ -91,7 +91,7 @@ function LandingPage() {
                 <h2 className="section-title">How It Works</h2>
                 <div className="features-grid">
                     
-                    <div className="feature-card">
+                    <div className="feature-card hextech-card">
                         <div className="feature-icon-wrapper">🛡️</div>
                         <h3>1. Claim Your Summoner</h3>
                         <p>
@@ -99,7 +99,7 @@ function LandingPage() {
                         </p>
                     </div>
 
-                    <div className="feature-card">
+                    <div className="feature-card hextech-card">
                         <div className="feature-icon-wrapper">🎓</div>
                         <h3>2. Verify Affiliation</h3>
                         <p>
@@ -107,7 +107,7 @@ function LandingPage() {
                         </p>
                     </div>
 
-                    <div className="feature-card">
+                    <div className="feature-card hextech-card">
                         <div className="feature-icon-wrapper">🏆</div>
                         <h3>3. Boost Your School</h3>
                         <p>

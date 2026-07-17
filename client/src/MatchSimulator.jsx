@@ -134,12 +134,16 @@ function MatchSimulator() {
       <div className="sim-header">
         <h2>Collegiate Summoners Clash</h2>
         <p>Simulate a custom 5v5 scrim between two schools based on live competitor rankings on the Rift.</p>
+        <div className="hextech-divider">
+          <div className="hextech-divider-line"></div>
+          <div className="hextech-divider-diamond"></div>
+        </div>
       </div>
 
       {error && <div className="error-message" style={{ maxWidth: '600px', margin: '0 auto 1.5rem' }}>{error}</div>}
 
       {/* Selectors */}
-      <div className="sim-controls">
+      <div className="sim-controls hextech-card">
         <div className="sim-select-group">
           <label>Blue Team</label>
           <select 
@@ -195,7 +199,7 @@ function MatchSimulator() {
           {/* Roster lineups */}
           <div className="sim-teams">
             {/* Team 1 (Blue) */}
-            <div className="sim-team-panel blue-side">
+            <div className="sim-team-panel blue-side hextech-card">
               <div className="team-meta">
                 <img 
                   src={simulation.winner === universities.find(u => u.uni_id == uni1)?.uni_name ? simulation.winner_logo : simulation.loser_logo || "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg"} 
@@ -228,7 +232,7 @@ function MatchSimulator() {
             </div>
 
             {/* Team 2 (Red) */}
-            <div className="sim-team-panel red-side">
+            <div className="sim-team-panel red-side hextech-card">
               <div className="team-meta">
                 <img 
                   src={simulation.winner === universities.find(u => u.uni_id == uni2)?.uni_name ? simulation.winner_logo : simulation.loser_logo || "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg"} 
@@ -262,7 +266,7 @@ function MatchSimulator() {
           </div>
 
           {/* Play-by-play ticker */}
-          <div className="sim-logs-container">
+          <div className="sim-logs-container hextech-card">
             <div className="logs-header">
               <h4>Live Match Feed</h4>
               {simulating && (
@@ -294,11 +298,11 @@ function MatchSimulator() {
 
           {/* Victory Banner */}
           {!simulating && currentLogIdx >= simulation.logs.length && (
-            <div className="victory-banner animate-fade-in">
+            <div className="victory-banner animate-fade-in hextech-card">
               <div className="victory-trophy">🏆</div>
               <h2>VICTORY</h2>
               <h3>{simulation.winner}</h3>
-              <div className="mvp-card">
+              <div className="mvp-card hextech-card">
                 <span className="mvp-badge">MATCH MVP</span>
                 <span className="mvp-name">{simulation.mvp}</span>
               </div>

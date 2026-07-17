@@ -68,7 +68,7 @@ function PlayerCard({ data }) {
   const isCollegiateIcon = ['MASTER', 'GRANDMASTER', 'CHALLENGER'].includes(data.rankTier?.toUpperCase());
 
   return (
-    <div className="player-card">
+    <div className="player-card hextech-card">
       <div className="profile-icon-container">
         <img
           className="profile-icon"

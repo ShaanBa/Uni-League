@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, NavLink, Link, Navigate } from 'react-router-dom'
 import Register from './Register'
 import Leaderboard from './Leaderboard'
 import SearchPage from './SearchPage'
@@ -33,25 +33,25 @@ function App() {
                             UNI LEAGUE
                         </span>
                     </Link>
-                    <Link to="/search"><button>Search</button></Link>
-                    <Link to="/leaderboard"><button>Leaderboard</button></Link>
-                    <Link to="/simulator"><button>Clash Simulator</button></Link>
+                    <NavLink to="/search" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}><button>Search</button></NavLink>
+                    <NavLink to="/leaderboard" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}><button>Leaderboard</button></NavLink>
+                    <NavLink to="/simulator" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}><button>Clash Simulator</button></NavLink>
                     
                     {!isLoggedIn ? (
                         <>
-                            <Link to="/register"><button>Register</button></Link>
-                            <Link to="/login"><button>Login</button></Link>
+                            <NavLink to="/register" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}><button>Register</button></NavLink>
+                            <NavLink to="/login" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}><button>Login</button></NavLink>
                         </>
                     ) : (
                         <>
-                            <Link to="/profile"><button>My Profile</button></Link>
-                            <button onClick={handleLogout}>Logout</button>
+                            <NavLink to="/profile" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}><button>My Profile</button></NavLink>
+                            <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', letterSpacing: '2px', padding: '0.5rem 1.2rem', fontFamily: 'Cinzel', fontWeight: '700', cursor: 'pointer' }}>Logout</button>
                         </>
                     )}
                 </nav>
                 
                 {/* Wrapping our routes in this main-content div applies the central panel styling */}
-                <main className="main-content">
+                <main className="main-content hextech-card">
                     <Routes>
                         <Route path="/" element={<LandingPage />} />
                         <Route path="/search" element={<SearchPage />} />
