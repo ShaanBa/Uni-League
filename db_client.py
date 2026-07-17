@@ -58,9 +58,9 @@ def get_university_id(domain):
     '''
     with get_db_connection() as con:
         cur = con.cursor()
-        # simple query, get uni_id that matches the domain
-        query = "SELECT uni_id FROM universities WHERE uni_domain = %s"
-        cur.execute(query, (domain,)) 
+        # SQL suffix matching allows subdomains (e.g. mail.usf.edu matches usf.edu)
+        query = "SELECT uni_id FROM universities WHERE uni_domain = %s OR %s LIKE '%.' || uni_domain"
+        cur.execute(query, (domain, domain)) 
         result = cur.fetchone()
         
         # if there is a result it will give the uni_id, if no result, its None (not allowed to register with email from unis not in our db)
@@ -233,3 +233,71 @@ def get_profile_by_user(user_id):
         """
         cur.execute(query, (user_id,))
         return cur.fetchone()
+
+# --- Verification & Security Extensions ---
+
+def init_db():
+    '''
+    Initializes database verification structures dynamically on startup
+    '''
+    with get_db_connection() as con:
+        cur = con.cursor()
+        # Add email verification code columns to users table
+        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_code VARCHAR(6)")
+        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_code_expires TIMESTAMP")
+        
+        # Create pending_claims table for Riot summoner third party verification
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS pending_claims (
+                user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+                puuid VARCHAR NOT NULL,
+                verification_code VARCHAR(32) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, puuid)
+            )
+        """)
+
+def set_user_verification_code(user_id, code, expires_at):
+    with get_db_connection() as con:
+        cur = con.cursor()
+        query = """
+            UPDATE users 
+            SET verification_code = %s, verification_code_expires = %s 
+            WHERE user_id = %s
+        """
+        cur.execute(query, (code, expires_at, user_id))
+
+def get_user_verification(user_id):
+    with get_db_connection() as con:
+        cur = con.cursor(cursor_factory=RealDictCursor)
+        query = "SELECT user_email, is_verified, verification_code, verification_code_expires FROM users WHERE user_id = %s"
+        cur.execute(query, (user_id,))
+        return cur.fetchone()
+
+def verify_user_email(user_id):
+    with get_db_connection() as con:
+        cur = con.cursor()
+        cur.execute("UPDATE users SET is_verified = TRUE, verification_code = NULL, verification_code_expires = NULL WHERE user_id = %s", (user_id,))
+
+def create_pending_claim(user_id, puuid, code):
+    with get_db_connection() as con:
+        cur = con.cursor()
+        query = """
+            INSERT INTO pending_claims (user_id, puuid, verification_code) 
+            VALUES (%s, %s, %s)
+            ON CONFLICT (user_id, puuid) 
+            DO UPDATE SET verification_code = EXCLUDED.verification_code, created_at = CURRENT_TIMESTAMP
+        """
+        cur.execute(query, (user_id, puuid, code))
+
+def get_pending_claim(user_id, puuid):
+    with get_db_connection() as con:
+        cur = con.cursor(cursor_factory=RealDictCursor)
+        query = "SELECT verification_code FROM pending_claims WHERE user_id = %s AND puuid = %s"
+        cur.execute(query, (user_id, puuid))
+        return cur.fetchone()
+
+def delete_pending_claim(user_id, puuid):
+    with get_db_connection() as con:
+        cur = con.cursor()
+        cur.execute("DELETE FROM pending_claims WHERE user_id = %s AND puuid = %s", (user_id, puuid))

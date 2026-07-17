@@ -4,9 +4,15 @@ import PlayerCard from "./PlayerCard"
 function Profile() {
     const [playerData, setPlayerData] = useState(null)
     const [loading, setLoading] = useState(true)
+    const [isVerified, setIsVerified] = useState(true)
     const [refreshing, setRefreshing] = useState(false)
     const [error, setError] = useState(null)
     const token = localStorage.getItem('user_token')
+
+    // Email OTP states
+    const [verificationCode, setVerificationCode] = useState("")
+    const [verifyingEmail, setVerifyingEmail] = useState(false)
+    const [resending, setResending] = useState(false)
 
     const fetchProfile = async () => {
         if (!token) {
@@ -23,14 +29,20 @@ function Profile() {
                 }
             })
             
+            const data = await response.json()
+            
+            // Set verification state from backend payload
+            if (data && typeof data.is_verified !== 'undefined') {
+                setIsVerified(data.is_verified)
+            }
+            
             if (response.ok) {
-                const data = await response.json()
                 setPlayerData(data)
             } else if (response.status === 404) {
                 // Not claimed yet, which is expected
                 setPlayerData(null)
             } else {
-                setError("Failed to retrieve profile data.")
+                setError(data.error || "Failed to retrieve profile data.")
             }
         } catch (err) {
             setError("Could not connect to the server.")
@@ -42,6 +54,63 @@ function Profile() {
     useEffect(() => {
         fetchProfile()
     }, [token])
+
+    const handleVerifyEmail = async (e) => {
+        e.preventDefault();
+        if (!verificationCode.trim()) return;
+
+        setError(null)
+        setVerifyingEmail(true)
+
+        try {
+            const response = await fetch('/api/verify_email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ code: verificationCode.trim() })
+            })
+            const data = await response.json()
+            
+            if (response.ok) {
+                alert("Email verified successfully!")
+                setIsVerified(true)
+                fetchProfile()
+            } else {
+                setError(data.error || "Email verification failed.")
+            }
+        } catch (err) {
+            setError("Could not reach verification server.")
+        } finally {
+            setVerifyingEmail(false)
+        }
+    }
+
+    const handleResendCode = async () => {
+        setError(null)
+        setResending(true)
+
+        try {
+            const response = await fetch('/api/resend_verification', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            
+            if (response.ok) {
+                alert("Verification code resent! (For local dev: check Flask console stdout log)")
+            } else {
+                const data = await response.json()
+                setError(data.error || "Failed to resend code.")
+            }
+        } catch (err) {
+            setError("Could not reach verification server.")
+        } finally {
+            setResending(false)
+        }
+    }
 
     const refreshMyStats = async () => {
         setError(null)
@@ -77,6 +146,54 @@ function Profile() {
         )
     }
 
+    // --- RENDER EMAIL VERIFICATION SCREEN IF UNVERIFIED ---
+    if (!isVerified) {
+        return (
+            <div className="form-container" style={{ maxWidth: '460px' }}>
+                <h2>Verify Student Status</h2>
+                <p style={{ fontSize: '0.85rem', marginBottom: '1.5rem', textAlign: 'center' }}>
+                    We sent a 6-digit verification code to your student email. Enter it below to unlock your profile.
+                </p>
+                <div style={{ fontStyle: 'italic', fontSize: '0.75rem', color: 'var(--hextech-blue)', marginBottom: '1.5rem', background: 'rgba(0, 210, 241, 0.05)', padding: '8px', border: '1px solid rgba(0, 210, 241, 0.2)' }}>
+                    💡 <strong>Local Dev Note:</strong> Check the Flask terminal standard output for the generated OTP!
+                </div>
+
+                {error && <div className="error-message">{error}</div>}
+
+                <form onSubmit={handleVerifyEmail}>
+                    <div className="form-group">
+                        <label>Verification Code</label>
+                        <input
+                            type="text"
+                            placeholder="Enter 6-digit pin"
+                            value={verificationCode}
+                            onChange={(e) => setVerificationCode(e.target.value)}
+                            disabled={verifyingEmail}
+                            maxLength={6}
+                            required
+                            style={{ textAlign: 'center', fontSize: '1.2rem', letterSpacing: '2px', fontWeight: 'bold' }}
+                        />
+                    </div>
+
+                    <button type="submit" style={{ width: '100%', marginTop: '0.5rem' }} disabled={verifyingEmail}>
+                        {verifyingEmail ? "Verifying..." : "Verify Email"}
+                    </button>
+                </form>
+
+                <div style={{ marginTop: '1.5rem', fontSize: '0.85rem' }}>
+                    Didn't receive the code?{' '}
+                    <span 
+                        onClick={handleResendCode} 
+                        style={{ color: 'var(--gold-primary)', textDecoration: 'underline', cursor: 'pointer', fontWeight: 'bold' }}
+                    >
+                        {resending ? "Resending..." : "Resend Code"}
+                    </span>
+                </div>
+            </div>
+        )
+    }
+
+    // --- STANDARD PROFILE SCREEN ---
     return (
         <div>
             <h2>My Profile</h2>
@@ -97,7 +214,7 @@ function Profile() {
                     </button>
                 </div>
             ) : (
-                <div style={{ margin: '2rem auto', padding: '2rem', border: '1px dashed var(--border-gold)', borderRadius: '4px' }}>
+                <div style={{ margin: '2rem auto', padding: '3rem', border: '1px dashed var(--border-gold)', borderRadius: '4px' }}>
                     <p style={{ color: 'var(--text-main)', marginBottom: '1.5rem' }}>
                         No summoner profile claimed yet. Head to the Search page to look up your summoner name and claim your account.
                     </p>
