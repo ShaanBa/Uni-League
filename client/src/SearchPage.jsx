@@ -12,6 +12,7 @@ function SearchPage() {
     
     // Verification claim flow state
     const [claimCode, setClaimCode] = useState(null)
+    const [claimIconUrl, setClaimIconUrl] = useState(null)
     const [verifyingClaim, setVerifyingClaim] = useState(false)
 
     // Grab the token to see if user is logged in
@@ -73,6 +74,7 @@ function SearchPage() {
             const data = await response.json()
             if (response.ok) {
                 setClaimCode(data.verification_code)
+                setClaimIconUrl(data.icon_url)
             } else {
                 setError(data.error || 'Failed to request verification code.')
             }
@@ -105,8 +107,9 @@ function SearchPage() {
             if (response.ok) {
                 alert(data.message || 'Profile Claimed successfully!')
                 setClaimCode(null)
+                setClaimIconUrl(null)
             } else {
-                setError(data.error || 'Verification failed. Please double check the code is saved in your League client.')
+                setError(data.error || 'Verification failed. Please double check you saved the correct profile icon in your League client.')
             }
         } catch (err) {
             setError("Failed to verify claim. Server error.")
@@ -194,19 +197,36 @@ function SearchPage() {
                             </p>
                             <ol style={{ textAlign: 'left', fontSize: '0.85rem', paddingLeft: '1.2rem', marginBottom: '1.5rem', color: '#b3bac6', lineHeight: '1.6' }}>
                                 <li>Open your League of Legends Client.</li>
-                                <li>Go to <strong>Settings</strong> (cog icon) &gt; <strong>Verification</strong>.</li>
-                                <li>Enter the following code exactly and click Save:</li>
+                                <li>Click your profile icon (top right) to change your icon.</li>
+                                <li>Select the profile icon shown below (Icon ID: <strong>{claimCode}</strong>).</li>
+                                <li>Click Save and then click the <strong>Verify & Claim</strong> button below.</li>
                             </ol>
                             
-                            <div style={{ background: 'rgba(2, 6, 12, 0.9)', border: '1px solid var(--border-gold)', color: 'var(--gold-primary)', padding: '10px', fontSize: '1.3rem', fontWeight: 'bold', letterSpacing: '1px', marginBottom: '1.5rem', borderRadius: '4px', textShadow: '0 0 10px rgba(200,170,110,0.3)' }}>
-                                {claimCode}
-                            </div>
+                            {claimIconUrl && (
+                                <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+                                    <img 
+                                        src={claimIconUrl} 
+                                        alt={`Required Icon ${claimCode}`} 
+                                        style={{ 
+                                            width: '80px', 
+                                            height: '80px', 
+                                            borderRadius: '50%', 
+                                            border: '2px solid var(--gold-primary)', 
+                                            boxShadow: '0 0 15px rgba(200, 170, 110, 0.4)',
+                                            display: 'inline-block'
+                                        }}
+                                    />
+                                    <div style={{ marginTop: '8px', fontSize: '0.75rem', color: 'var(--gold-primary)', fontWeight: 'bold' }}>
+                                        Required Profile Icon
+                                    </div>
+                                </div>
+                            )}
                             
                             <div className="action-buttons-group" style={{ flexDirection: 'column', gap: '10px' }}>
                                 <button onClick={() => verifyClaim(false)} disabled={verifyingClaim} style={{ width: '100%' }}>
-                                    {verifyingClaim ? "Verifying client..." : "Verify & Claim"}
+                                    {verifyingClaim ? "Verifying icon..." : "Verify & Claim"}
                                 </button>
-                                <button onClick={() => setClaimCode(null)} disabled={verifyingClaim} style={{ width: '100%', border: '1px solid var(--text-main)', color: 'var(--text-main)', background: 'transparent' }}>
+                                <button onClick={() => { setClaimCode(null); setClaimIconUrl(null); }} disabled={verifyingClaim} style={{ width: '100%', border: '1px solid var(--text-main)', color: 'var(--text-main)', background: 'transparent' }}>
                                     Cancel
                                 </button>
                                 <span 
@@ -218,6 +238,7 @@ function SearchPage() {
                             </div>
                         </div>
                     )}
+
                 </div>
             )}
         </div>

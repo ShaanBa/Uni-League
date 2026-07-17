@@ -293,12 +293,16 @@ def claim_summoner_request(current_user_id):
         return jsonify({"error": "PUUID is required."}), 400
         
     puuid = data['puuid']
-    verif_code = f"UNI-{uuid.uuid4().hex[:6].upper()}"
+    # Choose a random default profile icon ID (0 to 28) which all accounts own by default
+    icon_id = random.randint(0, 28)
+    verif_code = str(icon_id)
     create_pending_claim(current_user_id, puuid, verif_code)
     
+    icon_url = f"https://ddragon.leagueoflegends.com/cdn/13.24.1/img/profileicon/{icon_id}.png"
     return jsonify({
         "verification_code": verif_code,
-        "message": "Verification code generated! Please set this code under Settings -> Verification in your LoL client."
+        "icon_url": icon_url,
+        "message": f"Verification setup! Please change your League of Legends profile icon to the icon shown (Icon ID: {icon_id}) and click Verify. You can change it back immediately after verification."
     })
 
 @app.route('/api/claim_summoner/verify', methods=['POST'])
@@ -318,18 +322,17 @@ def claim_summoner_verify(current_user_id):
     if not pending:
         return jsonify({"error": "No pending claim found. Please click 'Get Code' first."}), 404
         
-    expected_code = pending['verification_code']
+    expected_icon_id = pending['verification_code']
     
     metadata = get_summoner_metadata(puuid)
-    if not metadata or 'id' not in metadata:
+    if not metadata or 'profileIconId' not in metadata:
         # Development fallback if Riot API is not fully reachable or Summoner ID is missing
         print("[CLAIM BYPASS] Riot API key is missing or returning error. Bypassing check in local development mode.")
         claim_summoner_(current_user_id, puuid)
         delete_pending_claim(current_user_id, puuid)
         return jsonify({"message": "Summoner claimed! (Dev Mode: Bypassed third party verification)"})
         
-    summoner_id = metadata['id']
-    actual_code = get_third_party_code(summoner_id)
+    current_icon_id = str(metadata['profileIconId'])
     
     api_key = os.getenv("RIOT_API_KEY")
     if not api_key:
@@ -338,7 +341,7 @@ def claim_summoner_verify(current_user_id):
         delete_pending_claim(current_user_id, puuid)
         return jsonify({"message": "Summoner claimed! (Dev Mode: Bypassed third party verification)"})
         
-    if actual_code == expected_code:
+    if current_icon_id == expected_icon_id:
         claim_summoner_(current_user_id, puuid)
         delete_pending_claim(current_user_id, puuid)
         return jsonify({"message": "Summoner claimed successfully!"})
@@ -350,10 +353,12 @@ def claim_summoner_verify(current_user_id):
             delete_pending_claim(current_user_id, puuid)
             return jsonify({"message": "Summoner claimed! (Bypassed via Developer Override)"})
             
+        expected_icon_url = f"https://ddragon.leagueoflegends.com/cdn/13.24.1/img/profileicon/{expected_icon_id}.png"
         return jsonify({
-            "error": "Verification code mismatch on Riot client.",
-            "expected_code": expected_code,
-            "actual_code": actual_code or "(None found)"
+            "error": f"Verification failed. Your active profile icon (ID: {current_icon_id}) does not match the required icon (ID: {expected_icon_id}).",
+            "expected_icon_id": expected_icon_id,
+            "expected_icon_url": expected_icon_url,
+            "current_icon_id": current_icon_id
         }), 400
 
 @app.route('/api/refresh_summoner', methods=['POST'])
