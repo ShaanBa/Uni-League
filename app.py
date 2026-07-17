@@ -47,14 +47,16 @@ def parse_rank_data(rank_list):
     Returns:
         dict: Returns a clean dictionary of rank data
     """
+    if not isinstance(rank_list, list):
+        return {'rankTier': 'UNRANKED', 'rankDivision': 'N/A', 'lp': 0, 'wins': 0, 'losses': 0}
     for item in rank_list: 
-        if item["queueType"] == "RANKED_SOLO_5x5": #we only care about ranked solo data for the app
+        if item.get("queueType") == "RANKED_SOLO_5x5": #we only care about ranked solo data for the app
             return {
-                'rankTier': item['tier'],
-                'rankDivision': item['rank'],
-                'lp': item['leaguePoints'],
-                'wins': item['wins'],
-                'losses' : item['losses']
+                'rankTier': item.get('tier', 'UNRANKED'),
+                'rankDivision': item.get('rank', 'N/A'),
+                'lp': item.get('leaguePoints', 0),
+                'wins': item.get('wins', 0),
+                'losses' : item.get('losses', 0)
                 } # return the rank info in a clean format
     return {'rankTier': 'UNRANKED', 'rankDivision': 'N/A', 'lp': 0, 'wins': 0, 'losses': 0} # if there is no ranked solo data, they are unranked (for the purposes of the app at least)
 
@@ -71,22 +73,27 @@ def search_user(game_name, tag_line):
     """
     print(f'Searching for {game_name}')
     account = get_riot_account(game_name, tag_line) 
+    if not account or 'puuid' not in account:
+        return jsonify({"error": f"Summoner '{game_name}#{tag_line}' not found on Riot servers."}), 404
+        
     puuid = account['puuid']
     rank = get_rank_data(puuid)
     metadata = get_summoner_metadata(puuid)
+    
     clean_rank = parse_rank_data(rank) # the rank is a cluttered object so we clean it to only get what we need
+    profile_icon = metadata.get('profileIconId', 29) if isinstance(metadata, dict) else 29
     
     # create the summoner format
     full_summoner = {
         "puuid": puuid,
-        "gameName": account['gameName'],
-        "tagLine": account['tagLine'],
+        "gameName": account.get('gameName', game_name),
+        "tagLine": account.get('tagLine', tag_line),
         "rankTier": clean_rank['rankTier'],
         "rankDivision": clean_rank['rankDivision'],
         "lp": clean_rank['lp'],
         "wins": clean_rank['wins'],
         "losses": clean_rank['losses'],
-        "profile_icon_id": metadata['profileIconId']
+        "profile_icon_id": profile_icon
 
     }
     save_summoner(full_summoner) #add to db
@@ -104,6 +111,8 @@ def register_user():
         Response: JSON response telling the success/failure of registration
     """
     data = request.get_json()  # get email and password from request body
+    if not data or 'email' not in data or 'password' not in data:
+        return jsonify({"error": "Email and password are required!"}), 400
     
     # get email and password
     email = data['email']
@@ -140,6 +149,8 @@ def login_user():
     """Logs in use by checking if email real and password valid. If it is return a token for auth and the university id for frontend use.
     """ 
     data = request.get_json()
+    if not data or 'email' not in data or 'password' not in data:
+        return jsonify({"error": "Email and password are required!"}), 400
     email, password = data['email'], data['password']
     
     result = get_user_by_email(email)
@@ -172,9 +183,13 @@ def claim_summoner(current_user_id):
 @token_required
 def refresh_summoner(current_user_id):
     puuid = get_summoner_by_user(current_user_id)
+    if not puuid:
+        return jsonify({'error': "No summoner claimed for this user yet!"}), 400
+        
     metadata = get_summoner_metadata(puuid)
     rank = get_rank_data(puuid)
     clean_rank = parse_rank_data(rank)
+    profile_icon = metadata.get('profileIconId', 29) if isinstance(metadata, dict) else 29
     
     update_summoner_rank(
         puuid, 
@@ -183,7 +198,7 @@ def refresh_summoner(current_user_id):
         clean_rank['lp'],
         clean_rank['wins'],
         clean_rank['losses'],
-        metadata['profileIconId']
+        profile_icon
         
     )
     return jsonify({'message': "Summoner Updated!"})
@@ -206,7 +221,6 @@ def get_user_profile(current_user_id):
         "losses": profile.get('losses', 0),
         "profile_icon_id": profile.get('profile_icon_id', 29)
     })
-    
     
 if __name__ == '__main__':
     app.run(debug=True)

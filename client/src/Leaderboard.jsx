@@ -65,7 +65,10 @@ function Leaderboard() {
                         <tbody>
                             {leaderboardData.length > 0 ? (
                                 leaderboardData.map((player, index) => (
-                                    <tr key={player.puuid} className={index < 3 ? 'top-3' : ''}>
+                                    <tr 
+                                        key={player.puuid} 
+                                        className={index === 0 ? 'top-3 top-3-1' : index === 1 ? 'top-3 top-3-2' : index === 2 ? 'top-3 top-3-3' : ''}
+                                    >
                                         <td className="col-rank">{index + 1}</td>
                                         
                                         <td>

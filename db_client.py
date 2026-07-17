@@ -110,7 +110,9 @@ def calculate_score(tier, division):
         "CHALLENGER": 3600
     }
     Div_Map = {"IV": 0, "III": 100, "II": 200, "I": 300}
-    return Tier_Map[tier] + Div_Map.get(division, 0) # if division is N/A (for unranked), it will default to 0
+    # Ensure tier is uppercase and safely retrieve tier/division values
+    tier_upper = tier.upper() if tier else "UNRANKED"
+    return Tier_Map.get(tier_upper, 0) + Div_Map.get(division, 0)
 def get_leaderboard(uni_id):
     '''
     Gets the leaderboard of summoners for a given university, sorted by score (calculated from rank). If uni_id is 'all', it gets the leaderboard for all universities.
@@ -128,7 +130,7 @@ def get_leaderboard(uni_id):
             cur.execute(query)        
         else:
             # specific uni means we need to filter by uni_id, so we add a WHERE clause for that
-            query = """SELECT universities.uni_name, puuid, game_name, rank_tier, rank_division, lp 
+            query = """SELECT universities.uni_name, puuid, game_name, rank_tier, rank_division, lp, wins, losses 
                     FROM summoners 
                     INNER JOIN users ON summoners.user_id = users.user_id 
                     JOIN universities ON users.uni_id = universities.uni_id 
@@ -165,7 +167,11 @@ def claim_summoner_(user_id, puuid):
     '''
     with get_db_connection() as con:
         cur = con.cursor()
-        # simple query to update the summoner's user_id to the claiming user's id, effectively claiming the summoner for that user. This allows us to link the summoner to the user in the database for future retrieval and display in profile and leaderboard.
+        # 1. Clear any prior claimed summoners for this user to respect UNIQUE user_id constraint
+        cur.execute("UPDATE summoners SET user_id = NULL WHERE user_id = %s", (user_id,))
+        # 2. Clear any prior users claiming this summoner (to avoid steals or unique violation conflicts)
+        cur.execute("UPDATE summoners SET user_id = NULL WHERE puuid = %s", (puuid,))
+        # 3. Associate user with the summoner
         query = '''
         UPDATE summoners
         SET user_id = %s
@@ -193,7 +199,7 @@ def get_summoner_by_user(user_id):
         '''
         cur.execute(query, (user_id,))
         data = cur.fetchone()
-        return data[0]
+        return data[0] if data else None
 
 def update_summoner_rank(puuid, rank_tier, rank_division, lp, wins, losses, profile_icon_id):
     '''

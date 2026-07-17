@@ -23,51 +23,50 @@ function PlayerCard({ data }) {
   };
 
   const rankColor = getRankColor(data.rankTier);
-
-  // Stable URL for Rank Emblems from CommunityDragon
-  // Note: We use .toLowerCase() because the filenames are lowercase
-  // if the profile data exists use that id if not use 29 the generic helmet bro
   const iconId = data.profile_icon_id || 29;
   const iconUrl = `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${iconId}.jpg`;
 
+  // Calculate Winrate details
+  const totalGames = (data.wins || 0) + (data.losses || 0);
+  const winRate = totalGames > 0 ? Math.round((data.wins / totalGames) * 100) : 0;
+  const winRateClass = winRate >= 55 ? 'high-winrate' : winRate < 48 ? 'low-winrate' : '';
+
   return (
     <div className="player-card">
-      <img
-        className="profile-icon"
-        src={iconUrl}
-        alt={`${data.gameName} profile icon`}
-      />
+      <div className="profile-icon-container">
+        <img
+          className="profile-icon"
+          src={iconUrl}
+          alt={`${data.gameName} profile icon`}
+        />
+      </div>
 
       <div className="player-name-row">
-        {data.gameName}#{data.tagLine}
+        {data.gameName}
+        <span className="player-tag-row">#{data.tagLine || data.tag}</span>
       </div>
 
       <div className="rank-line" style={{ color: rankColor }}>
         {data.rankTier}
         {data.rankDivision && data.rankDivision !== 'N/A' ? ` ${data.rankDivision}` : ''}
       </div>
+
       {data.rankTier !== 'UNRANKED' && (
         <div className="profile-stats-grid">
-
           <div className="stat-box">
+            <span className="stat-label">LP</span>
             <span className="stat-value">{data.lp}</span>
-            <span className="stat-label"> LP</span>
           </div>
 
           <div className="stat-box">
+            <span className="stat-label">Record</span>
             <span className="stat-value">{data.wins}W - {data.losses}L</span>
-            <span className="stat-label"> Record</span>
           </div>
 
           <div className="stat-box">
-            <span className="stat-value">
-              {data.wins + data.losses > 0
-                ? Math.round((data.wins / (data.wins + data.losses)) * 100)
-                : 0}%
-            </span>
-            <span className="stat-label"> Winrate</span>
+            <span className="stat-label">Winrate</span>
+            <span className={`stat-value ${winRateClass}`}>{winRate}%</span>
           </div>
-
         </div>
       )}
     </div>
