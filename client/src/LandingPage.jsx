@@ -60,15 +60,17 @@ function LandingPage() {
                             return (
                                 <div key={school.uni_id} className={`podium-column ${rankClass} hextech-card`}>
                                     <div className="podium-badge">{badgeChar}</div>
-                                    <img 
-                                        className="podium-logo" 
-                                        src={logoUrl} 
-                                        alt="" 
-                                        onError={(e) => {
-                                            e.target.onerror = null;
-                                            e.target.src = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg";
-                                        }}
-                                    />
+                                    <div className="podium-logo-container">
+                                        <img 
+                                            className="podium-logo" 
+                                            src={logoUrl} 
+                                            alt="" 
+                                            onError={(e) => {
+                                                e.target.onerror = null;
+                                                e.target.src = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg";
+                                            }}
+                                        />
+                                    </div>
                                     <div className="podium-school-name">{school.uni_name}</div>
                                     <div className="podium-school-domain">@{school.uni_domain}</div>
                                     <div className="podium-school-score">

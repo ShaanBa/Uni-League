@@ -404,9 +404,10 @@ input:focus {
     position: absolute;
     width: 6px;
     height: 6px;
-    background-color: #02060c;
+    background-color: var(--hextech-blue);
     transform: rotate(45deg);
     border: 1px solid var(--gold-primary);
+    box-shadow: 0 0 6px var(--hextech-blue);
 }
 
 /* Active Nav States */
@@ -433,4 +434,46 @@ input:focus {
 .nav-link.active button {
     color: var(--gold-bright) !important;
     text-shadow: 0 0 8px rgba(240, 230, 210, 0.5);
+}
+
+/* --- Hextech Art Deco & Gemstone Core Styling --- */
+.hextech-gemstone {
+    width: 8px;
+    height: 8px;
+    background-color: var(--hextech-blue);
+    transform: rotate(45deg);
+    border: 1px solid var(--gold-primary);
+    display: inline-block;
+    box-shadow: 0 0 6px var(--hextech-blue);
+}
+
+.hextech-deco-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    width: 100%;
+}
+
+.hextech-deco-line {
+    flex: 1;
+    height: 1px;
+    max-width: 120px;
+}
+
+.hextech-deco-line.left {
+    background: linear-gradient(90deg, transparent, rgba(200, 170, 110, 0.35));
+}
+
+.hextech-deco-line.right {
+    background: linear-gradient(270deg, transparent, rgba(200, 170, 110, 0.35));
+}
+
+.hextech-inscription {
+    font-family: monospace;
+    font-size: 0.65rem;
+    color: rgba(200, 170, 110, 0.3);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    user-select: none;
 }

@@ -201,12 +201,14 @@ function MatchSimulator() {
             {/* Team 1 (Blue) */}
             <div className="sim-team-panel blue-side hextech-card">
               <div className="team-meta">
-                <img 
-                  src={simulation.winner === universities.find(u => u.uni_id == uni1)?.uni_name ? simulation.winner_logo : simulation.loser_logo || "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg"} 
-                  alt="" 
-                  onError={(e) => e.target.src = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg"}
-                  className="team-logo"
-                />
+                <div className="team-logo-container">
+                  <img 
+                    src={simulation.winner === universities.find(u => u.uni_id == uni1)?.uni_name ? simulation.winner_logo : simulation.loser_logo || "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg"} 
+                    alt="" 
+                    onError={(e) => e.target.src = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg"}
+                    className="team-logo"
+                  />
+                </div>
                 <h3>{universities.find(u => u.uni_id == uni1)?.uni_name}</h3>
                 <span className="power-indicator">Avg Power Score: {simulation.power1}</span>
               </div>
@@ -234,12 +236,14 @@ function MatchSimulator() {
             {/* Team 2 (Red) */}
             <div className="sim-team-panel red-side hextech-card">
               <div className="team-meta">
-                <img 
-                  src={simulation.winner === universities.find(u => u.uni_id == uni2)?.uni_name ? simulation.winner_logo : simulation.loser_logo || "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg"} 
-                  alt="" 
-                  onError={(e) => e.target.src = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg"}
-                  className="team-logo"
-                />
+                <div className="team-logo-container">
+                  <img 
+                    src={simulation.winner === universities.find(u => u.uni_id == uni2)?.uni_name ? simulation.winner_logo : simulation.loser_logo || "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg"} 
+                    alt="" 
+                    onError={(e) => e.target.src = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg"}
+                    className="team-logo"
+                  />
+                </div>
                 <h3>{universities.find(u => u.uni_id == uni2)?.uni_name}</h3>
                 <span className="power-indicator">Avg Power Score: {simulation.power2}</span>
               </div>

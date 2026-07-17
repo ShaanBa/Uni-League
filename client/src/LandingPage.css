@@ -251,17 +251,30 @@
     border-color: #cd7f32;
 }
 
-.podium-logo {
+.podium-logo-container {
+    position: relative;
     width: 64px;
     height: 64px;
-    border-radius: 0;
-    object-fit: cover;
     margin-bottom: 1rem;
-    border: 1px solid var(--border-blue);
+    background: #02060c;
+    padding: 6px;
+    border: 1px solid var(--border-gold);
+    display: inline-block;
 }
 
-.podium-1st .podium-logo {
+.podium-logo {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(200, 170, 110, 0.25);
+    transition: all 0.25s ease;
+    display: block;
+}
+
+.podium-column:hover .podium-logo {
     border-color: var(--gold-primary);
+    box-shadow: 0 0 8px var(--hextech-blue);
 }
 
 .podium-school-name {

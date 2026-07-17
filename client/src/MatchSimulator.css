@@ -143,13 +143,30 @@
   padding-bottom: 1.2rem;
 }
 
-.team-logo {
+.team-logo-container {
+  position: relative;
   width: 60px;
   height: 60px;
-  border-radius: 0;
-  object-fit: cover;
-  border: 1px solid var(--border-gold);
   margin-bottom: 0.75rem;
+  background: #02060c;
+  padding: 6px;
+  border: 1px solid var(--border-gold);
+  display: inline-block;
+}
+
+.team-logo {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(200, 170, 110, 0.25);
+  transition: all 0.25s ease;
+  display: block;
+}
+
+.sim-team-panel:hover .team-logo {
+  border-color: var(--gold-primary);
+  box-shadow: 0 0 8px var(--hextech-blue);
 }
 
 .team-meta h3 {
