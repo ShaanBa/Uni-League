@@ -5,6 +5,7 @@ import random
 import uuid
 from functools import wraps
 from flask import Flask, jsonify, request
+from concurrent.futures import ThreadPoolExecutor
 from riot_client import get_riot_account, get_rank_data, get_summoner_metadata, get_third_party_code, get_recent_matches
 from db_client import (
     save_summoner, get_university_id, create_user, get_leaderboard, 
@@ -427,11 +428,24 @@ def get_university_matches(uni_id):
         
     summoners = get_university_summoners(uni_id)
     all_matches = []
-    for s in summoners:
-        matches = get_recent_matches(s['puuid'], s.get('region', 'na1'), count=3)
-        for m in matches:
-            m['player_name'] = f"{s['game_name']}#{s['tag']}"
-            all_matches.append(m)
+    
+    # Query matches for all summoners concurrently to optimize performance
+    def fetch_summoner_matches(s):
+        try:
+            matches = get_recent_matches(s['puuid'], s.get('region', 'na1'), count=3)
+            for m in matches:
+                m['player_name'] = f"{s['game_name']}#{s['tag']}"
+            return matches
+        except Exception as e:
+            print(f"Error fetching matches for summoner {s.get('game_name')}: {e}")
+            return []
+
+    if summoners:
+        max_workers = min(len(summoners), 10)
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            results = executor.map(fetch_summoner_matches, summoners)
+            for matches in results:
+                all_matches.extend(matches)
             
     # Return university info and combined match history
     return jsonify({
@@ -441,6 +455,7 @@ def get_university_matches(uni_id):
         "uni_logo_link": uni['uni_logo_link'],
         "matches": all_matches
     })
+
 
 if __name__ == '__main__':
     app.run(debug=True)

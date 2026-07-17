@@ -3,6 +3,7 @@ import requests
 import os
 import random
 from dotenv import load_dotenv
+from concurrent.futures import ThreadPoolExecutor
 
 load_dotenv()
 
@@ -41,6 +42,30 @@ def get_third_party_code(summoner_id, region='na1'):
         return r.text.strip().replace('"', '')
     return None
 
+def fetch_single_match(match_id, regional, api_key, puuid):
+    try:
+        url = f"https://{regional}.api.riotgames.com/lol/match/v5/matches/{match_id}"
+        mr = requests.get(url, headers={"X-Riot-Token": api_key}, timeout=5)
+        if mr.status_code == 200:
+            match_data = mr.json()
+            participants = match_data.get('info', {}).get('participants', [])
+            target_p = next((p for p in participants if p.get('puuid') == puuid), None)
+            
+            if target_p:
+                return {
+                    'matchId': match_id,
+                    'championName': target_p.get('championName'),
+                    'win': target_p.get('win'),
+                    'kills': target_p.get('kills', 0),
+                    'deaths': target_p.get('deaths', 0),
+                    'assists': target_p.get('assists', 0),
+                    'cs': target_p.get('totalMinionsKilled', 0) + target_p.get('neutralMinionsKilled', 0),
+                    'duration': match_data.get('info', {}).get('gameDuration', 0) // 60
+                }
+    except Exception as e:
+        print(f"Error fetching match {match_id}: {e}")
+    return None
+
 def get_recent_matches(puuid, region='na1', count=5):
     api_key = os.getenv("RIOT_API_KEY")
     if not api_key:
@@ -67,28 +92,18 @@ def get_recent_matches(puuid, region='na1', count=5):
         return mock_matches
 
     regional = get_regional_routing(region)
-    r = requests.get(f"https://{regional}.api.riotgames.com/lol/match/v5/matches/by-puuid/{puuid}/ids?start=0&count={count}", headers={"X-Riot-Token": api_key})
+    r = requests.get(f"https://{regional}.api.riotgames.com/lol/match/v5/matches/by-puuid/{puuid}/ids?start=0&count={count}", headers={"X-Riot-Token": api_key}, timeout=5)
     if r.status_code != 200:
         return []
     match_ids = r.json()
     
     match_details = []
-    for match_id in match_ids:
-        mr = requests.get(f"https://{regional}.api.riotgames.com/lol/match/v5/matches/{match_id}", headers={"X-Riot-Token": api_key})
-        if mr.status_code == 200:
-            match_data = mr.json()
-            participants = match_data.get('info', {}).get('participants', [])
-            target_p = next((p for p in participants if p.get('puuid') == puuid), None)
-            
-            if target_p:
-                match_details.append({
-                    'matchId': match_id,
-                    'championName': target_p.get('championName'),
-                    'win': target_p.get('win'),
-                    'kills': target_p.get('kills', 0),
-                    'deaths': target_p.get('deaths', 0),
-                    'assists': target_p.get('assists', 0),
-                    'cs': target_p.get('totalMinionsKilled', 0) + target_p.get('neutralMinionsKilled', 0),
-                    'duration': match_data.get('info', {}).get('gameDuration', 0) // 60
-                })
+    # Fetch details for all matches concurrently to optimize TTFB
+    with ThreadPoolExecutor(max_workers=count) as executor:
+        futures = [executor.submit(fetch_single_match, mid, regional, api_key, puuid) for mid in match_ids]
+        for f in futures:
+            res = f.result()
+            if res:
+                match_details.append(res)
     return match_details
+
