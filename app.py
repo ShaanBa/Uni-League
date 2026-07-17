@@ -471,6 +471,234 @@ def get_university_matches(uni_id):
         "matches": all_matches
     })
 
+@app.route('/api/profile/player/<puuid>', methods=['GET'])
+def get_player_profile_by_puuid(puuid):
+    from db_client import get_profile_by_puuid
+    profile = get_profile_by_puuid(puuid)
+    if not profile:
+        return jsonify({"error": "Player profile not found"}), 404
+        
+    # Get recent matches
+    matches = get_recent_matches(profile['puuid'], profile.get('region', 'na1'), count=5)
+        
+    return jsonify({
+        "gameName": profile['game_name'],
+        "tagLine": profile['tag'],
+        "rankTier": profile['rank_tier'],
+        "rankDivision": profile['rank_division'],
+        "lp": profile['lp'],
+        "wins": profile.get('wins', 0),
+        "losses": profile.get('losses', 0),
+        "profile_icon_id": profile.get('profile_icon_id', 29),
+        "region": profile.get('region', 'na1'),
+        "uni_id": profile.get('uni_id'),
+        "uni_name": profile.get('uni_name'),
+        "uni_domain": profile.get('uni_domain'),
+        "uni_logo_link": profile.get('uni_logo_link'),
+        "recentMatches": matches
+    })
+
+@app.route('/api/simulate_match', methods=['POST'])
+def simulate_match():
+    from db_client import get_university_details, get_university_summoners, calculate_score
+    import random
+    
+    data = request.get_json() or {}
+    uni1_id = data.get('uni_id_1')
+    uni2_id = data.get('uni_id_2')
+    
+    if not uni1_id or not uni2_id:
+        return jsonify({"error": "Two university IDs are required!"}), 400
+        
+    if str(uni1_id) == str(uni2_id):
+        return jsonify({"error": "Please select two different universities for simulation!"}), 400
+        
+    uni1 = get_university_details(uni1_id)
+    uni2 = get_university_details(uni2_id)
+    
+    if not uni1 or not uni2:
+        return jsonify({"error": "One or both universities not found!"}), 404
+        
+    summoners1 = get_university_summoners(uni1_id)
+    summoners2 = get_university_summoners(uni2_id)
+    
+    bot_names = [
+        "JinxBot", "EzBot", "LuxBot", "ThreshBot", "LeeBot", 
+        "YasuoBot", "AhriBot", "ZedBot", "GarenBot", "TeemoBot",
+        "RiftRecruit", "SoloQWarrior", "NexusDefender", "BaronSlayer"
+    ]
+    
+    champions_pool = [
+        "Aatrox", "Ahri", "Akali", "Ashe", "Bard", "Caitlyn", "Darius", "Diana", 
+        "Ekko", "Ezreal", "Fiora", "Garen", "Gnar", "Graves", "Hecarim", "Irelia", 
+        "Jax", "Jhin", "Jinx", "Kai'Sa", "Karma", "Katarina", "Kayn", "Lee Sin", 
+        "Leona", "Lillia", "Lucian", "Lulu", "Lux", "Malphite", "Maokai", "Nautilus", 
+        "Nidalee", "Olaf", "Orianna", "Ornn", "Pyke", "Rakan", "Rell", "Riven", 
+        "Samira", "Sejuani", "Senna", "Seraphine", "Sett", "Shen", "Sivir", "Sylas", 
+        "Syndra", "Talon", "Thresh", "Tristana", "Twisted Fate", "Udyr", "Varus", "Vayne", 
+        "Veigar", "Viego", "Viktor", "Vladimir", "Volibear", "Yasuo", "Yone", "Yuumi", 
+        "Zac", "Zed", "Zeri", "Ziggs", "Zoe"
+    ]
+    
+    def construct_lineup(summoners, uni_short_name):
+        lineup = []
+        for s in summoners:
+            power = calculate_score(s['rank_tier'], s['rank_division']) + s['lp']
+            lineup.append({
+                "game_name": s['game_name'],
+                "tag": s['tag'],
+                "rank_tier": s['rank_tier'],
+                "rank_division": s['rank_division'],
+                "power": power,
+                "is_bot": False
+            })
+            
+        recruit_num = 1
+        while len(lineup) < 5:
+            # Choose a rank between Bronze and Platinum for recruits
+            tier = random.choice(["BRONZE", "SILVER", "GOLD", "PLATINUM"])
+            div = random.choice(["I", "II", "III", "IV"])
+            lp = random.randint(0, 99)
+            power = calculate_score(tier, div) + lp
+            
+            lineup.append({
+                "game_name": f"Recruit {random.choice(['Alpha', 'Beta', 'Gamma', 'Delta', 'Omega'])}",
+                "tag": f"{uni_short_name}{recruit_num}",
+                "rank_tier": tier,
+                "rank_division": div,
+                "power": power,
+                "is_bot": True
+            })
+            recruit_num += 1
+            
+        lineup = lineup[:5]
+        champs = random.sample(champions_pool, 5)
+        for i in range(5):
+            lineup[i]["champion"] = champs[i]
+        return lineup
+
+    short1 = uni1['uni_name'].split(' ')[0][:4].upper()
+    short2 = uni2['uni_name'].split(' ')[0][:4].upper()
+    
+    lineup1 = construct_lineup(summoners1, short1)
+    lineup2 = construct_lineup(summoners2, short2)
+    
+    total_power1 = sum(p['power'] for p in lineup1)
+    total_power2 = sum(p['power'] for p in lineup2)
+    avg_power1 = total_power1 / 5
+    avg_power2 = total_power2 / 5
+    
+    logs = []
+    
+    # Step 1: Draft Phase
+    champs1_str = ", ".join([f"{p['game_name']} ({p['champion']})" for p in lineup1])
+    champs2_str = ", ".join([f"{p['game_name']} ({p['champion']})" for p in lineup2])
+    logs.append({
+        "time": "00:00",
+        "title": "Draft Phase Complete",
+        "description": f"{uni1['uni_name']} Draft: {champs1_str}. {uni2['uni_name']} Draft: {champs2_str}.",
+        "type": "draft"
+    })
+    
+    # Step 2: Early Game (0-15m)
+    p1_first_blood_chance = avg_power1 / (avg_power1 + avg_power2) if (avg_power1 + avg_power2) > 0 else 0.5
+    fb_team = uni1 if random.random() < p1_first_blood_chance else uni2
+    other_team = uni2 if fb_team == uni1 else uni1
+    fb_lineup = lineup1 if fb_team == uni1 else lineup2
+    other_lineup = lineup2 if fb_team == uni1 else lineup1
+    
+    killer = random.choice(fb_lineup)
+    victim = random.choice(other_lineup)
+    
+    logs.append({
+        "time": f"04:{random.randint(10,59):02d}",
+        "title": "First Blood!",
+        "description": f"{killer['game_name']} ({killer['champion']}) of {fb_team['uni_name']} catches {victim['game_name']} ({victim['champion']}) out of position in the river to secure First Blood!",
+        "type": "kill"
+    })
+    
+    herald_team = uni1 if random.random() < p1_first_blood_chance else uni2
+    herald_lineup = lineup1 if herald_team == uni1 else lineup2
+    jungler = random.choice(herald_lineup)
+    logs.append({
+        "time": f"11:{random.randint(10,59):02d}",
+        "title": "Rift Herald Secured",
+        "description": f"{jungler['game_name']} secures the Rift Herald for {herald_team['uni_name']} and summons it mid, taking down the first turret plating!",
+        "type": "objective"
+    })
+    
+    # Step 3: Mid Game Dragon Fight (15-25m)
+    tf_winner_chance = (avg_power1 + 200 if fb_team == uni1 else avg_power1) / (avg_power1 + avg_power2 + 200)
+    tf_winner = uni1 if random.random() < tf_winner_chance else uni2
+    tf_win_lineup = lineup1 if tf_winner == uni1 else lineup2
+    
+    carry = random.choice(tf_win_lineup)
+    logs.append({
+        "time": f"21:{random.randint(10,59):02d}",
+        "title": "Dragon Pit Clashes",
+        "description": f"A massive team fight breaks out around the Hextech Dragon. {carry['game_name']} ({carry['champion']}) deals massive damage with a double kill! {tf_winner['uni_name']} cleans up the fight 3-for-1 and secures the Dragon.",
+        "type": "fight"
+    })
+    
+    # Step 4: Baron Nashor Siege (25-35m)
+    baron_winner_chance = avg_power1 / (avg_power1 + avg_power2) if (avg_power1 + avg_power2) > 0 else 0.5
+    is_steal = random.random() < 0.25
+    
+    baron_team = uni1 if random.random() < baron_winner_chance else uni2
+    baron_lineup = lineup1 if baron_team == uni1 else lineup2
+    baron_other_team = uni2 if baron_team == uni1 else uni1
+    baron_other_lineup = lineup2 if baron_team == uni1 else lineup1
+    
+    if is_steal:
+        stealer = random.choice(baron_other_lineup)
+        logs.append({
+            "time": f"29:{random.randint(10,59):02d}",
+            "title": "Baron Stolen!",
+            "description": f"{baron_team['uni_name']} starts Baron Nashor. But wait! {stealer['game_name']} ({stealer['champion']}) of {baron_other_team['uni_name']} leaps into the pit and steals Baron Nashor with a clutch Smite! Complete chaos on the Rift!",
+            "type": "steal"
+        })
+        baron_team = baron_other_team
+        baron_lineup = baron_other_lineup
+    else:
+        logs.append({
+            "time": f"30:{random.randint(10,59):02d}",
+            "title": "Baron Nashor Slain",
+            "description": f"{baron_team['uni_name']} clean up a catch on the enemy support and secure Baron Nashor with ease. They are looking to end.",
+            "type": "objective"
+        })
+        
+    # Step 5: Nexus Siege (35m+)
+    final_power1 = total_power1 + (500 if baron_team == uni1 else 0) + random.randint(-300, 300)
+    final_power2 = total_power2 + (500 if baron_team == uni2 else 0) + random.randint(-300, 300)
+    
+    winner = uni1 if final_power1 > final_power2 else uni2
+    loser = uni2 if winner == uni1 else uni1
+    winner_lineup = lineup1 if winner == uni1 else lineup2
+    
+    mvp = max(winner_lineup, key=lambda x: x['power'])
+    
+    logs.append({
+        "time": "36:40",
+        "title": "Nexus Destroyed",
+        "description": f"{winner['uni_name']} march down the mid lane with Baron buff. {mvp['game_name']} ({mvp['champion']}) finds a flawless engage, wiping out the defenders. {winner['uni_name']} shatters the Nexus and wins the game!",
+        "type": "victory"
+    })
+    
+    return jsonify({
+        "winner": winner['uni_name'],
+        "winner_id": winner['uni_id'],
+        "winner_logo": winner['uni_logo_link'],
+        "loser": loser['uni_name'],
+        "loser_id": loser['uni_id'],
+        "loser_logo": loser['uni_logo_link'],
+        "lineup1": lineup1,
+        "lineup2": lineup2,
+        "power1": int(avg_power1),
+        "power2": int(avg_power2),
+        "mvp": f"{mvp['game_name']} ({mvp['champion']})",
+        "logs": logs
+    })
+
 
 if __name__ == '__main__':
     app.run(debug=True)

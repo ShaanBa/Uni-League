@@ -6,6 +6,7 @@ import SearchPage from './SearchPage'
 import Login from './Login'
 import Profile from './Profile'
 import LandingPage from './LandingPage'
+import MatchSimulator from './MatchSimulator'
 
 function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -34,6 +35,7 @@ function App() {
                     </Link>
                     <Link to="/search"><button>Search</button></Link>
                     <Link to="/leaderboard"><button>Leaderboard</button></Link>
+                    <Link to="/simulator"><button>Clash Simulator</button></Link>
                     
                     {!isLoggedIn ? (
                         <>
@@ -54,6 +56,7 @@ function App() {
                         <Route path="/" element={<LandingPage />} />
                         <Route path="/search" element={<SearchPage />} />
                         <Route path="/leaderboard" element={<Leaderboard />} />
+                        <Route path="/simulator" element={<MatchSimulator />} />
                         <Route path="/register" element={<Register />} />
                         <Route path="/login" element={
                             isLoggedIn ? <Navigate to="/profile" /> : <Login onLoginSuccess={() => setIsLoggedIn(true)} />

@@ -1,0 +1,457 @@
+.sim-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.sim-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.sim-header p {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Controls & VS */
+.sim-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-gold);
+  padding: 2rem;
+  border-radius: 6px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  backdrop-filter: blur(10px);
+}
+
+.sim-select-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  max-width: 380px;
+}
+
+.sim-select-group label {
+  font-family: 'Cinzel', serif;
+  color: var(--gold-primary);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 1.5px;
+}
+
+.vs-divider {
+  font-family: 'Cinzel', serif;
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--gold-primary);
+  text-shadow: 0 0 10px rgba(200, 170, 110, 0.4);
+  padding: 0 1rem;
+}
+
+/* Spinner */
+.loading-sim {
+  text-align: center;
+  margin: 4rem auto;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 3px solid rgba(0, 210, 241, 0.1);
+  border-top-color: var(--hextech-blue);
+  border-radius: 50%;
+  animation: spin 1s linear infinite, pulseBlue 2s infinite;
+  margin: 0 auto 1.5rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Simulation Board */
+.sim-board {
+  margin-top: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.sim-teams {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+@media (max-width: 850px) {
+  .sim-teams {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sim-team-panel {
+  background: var(--bg-card);
+  border-radius: 6px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+  backdrop-filter: blur(5px);
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.blue-side {
+  border: 1px solid rgba(0, 210, 241, 0.3);
+  box-shadow: 0 0 15px rgba(0, 210, 241, 0.05);
+}
+
+.blue-side::before {
+  content: 'BLUE SIDE';
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 0.65rem;
+  color: var(--hextech-blue);
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.red-side {
+  border: 1px solid rgba(211, 26, 69, 0.3);
+  box-shadow: 0 0 15px rgba(211, 26, 69, 0.05);
+}
+
+.red-side::before {
+  content: 'RED SIDE';
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 0.65rem;
+  color: var(--danger);
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.team-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  padding-bottom: 1.2rem;
+}
+
+.team-logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border-gold);
+  margin-bottom: 0.75rem;
+}
+
+.team-meta h3 {
+  font-size: 1.3rem;
+  margin-bottom: 4px;
+}
+
+.power-indicator {
+  font-size: 0.8rem;
+  color: var(--gold-primary);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.roster-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.roster-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.03);
+  transition: all 0.2s ease;
+}
+
+.roster-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.champ-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  border: 1px solid var(--border-blue);
+  object-fit: cover;
+}
+
+.player-details {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.player-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-light);
+}
+
+.player-champ {
+  font-size: 0.75rem;
+  color: var(--text-main);
+}
+
+.player-rank {
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+/* Play-by-play ticker logs */
+.sim-logs-container {
+  background: rgba(1, 8, 17, 0.9);
+  border: 1px solid var(--border-gold);
+  border-radius: 6px;
+  padding: 1.5rem;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+}
+
+.logs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-gold);
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.logs-header h4 {
+  margin-bottom: 0;
+  color: var(--gold-primary);
+  font-size: 0.95rem;
+}
+
+.skip-btn {
+  background: transparent;
+  border: 1px solid var(--hextech-blue);
+  color: var(--hextech-blue);
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 3px;
+}
+
+.skip-btn:hover {
+  background: rgba(0, 210, 241, 0.1);
+  color: #fff;
+  border-color: #fff;
+  box-shadow: 0 0 10px rgba(0, 210, 241, 0.3);
+}
+
+.logs-scroller {
+  height: 280px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-right: 8px;
+}
+
+/* Scrollbar */
+.logs-scroller::-webkit-scrollbar {
+  width: 6px;
+}
+.logs-scroller::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.3);
+}
+.logs-scroller::-webkit-scrollbar-thumb {
+  background: var(--border-gold);
+  border-radius: 3px;
+}
+
+.log-entry {
+  display: flex;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  animation: fadeInUp 0.3s ease-out;
+  border-left: 3px solid transparent;
+}
+
+.log-time {
+  font-family: monospace;
+  color: var(--gold-primary);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.log-body strong {
+  display: block;
+  font-size: 0.9rem;
+  margin-bottom: 2px;
+  letter-spacing: 0.5px;
+}
+
+.log-body p {
+  font-size: 0.85rem;
+  margin-bottom: 0;
+  color: #b3bac6;
+  line-height: 1.4;
+}
+
+/* Log variants styling */
+.log-kill {
+  background: rgba(211, 26, 69, 0.05);
+  border-left-color: var(--danger);
+}
+.log-kill strong {
+  color: #ff4d6d;
+}
+
+.log-fight {
+  background: rgba(157, 72, 224, 0.05);
+  border-left-color: var(--hextech-purple);
+}
+.log-fight strong {
+  color: #c77dff;
+}
+
+.log-objective {
+  background: rgba(0, 210, 241, 0.05);
+  border-left-color: var(--hextech-blue);
+}
+.log-objective strong {
+  color: var(--hextech-blue);
+}
+
+.log-steal {
+  background: rgba(200, 170, 110, 0.08);
+  border-left-color: #ffd166;
+}
+.log-steal strong {
+  color: #ffd166;
+}
+
+.log-victory {
+  background: rgba(200, 170, 110, 0.12);
+  border-left-color: var(--gold-primary);
+}
+.log-victory strong {
+  color: var(--gold-bright);
+}
+
+/* Loading Dots */
+.log-typing {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-left: 12px;
+}
+
+.log-typing .dot {
+  width: 6px;
+  height: 6px;
+  background-color: var(--hextech-blue);
+  border-radius: 50%;
+  animation: typingDot 1s infinite alternate;
+}
+
+.log-typing .dot:nth-child(2) { animation-delay: 0.2s; }
+.log-typing .dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingDot {
+  from { transform: translateY(0); opacity: 0.3; }
+  to { transform: translateY(-5px); opacity: 1; }
+}
+
+/* Victory celebration */
+.victory-banner {
+  background: linear-gradient(180deg, rgba(16, 26, 42, 0.9) 0%, rgba(3, 8, 15, 0.95) 100%);
+  border: 1px solid var(--gold-primary);
+  border-radius: 6px;
+  padding: 3rem 2rem;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 0 40px rgba(200, 170, 110, 0.25);
+  overflow: hidden;
+}
+
+.victory-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold-primary), transparent);
+}
+
+.victory-trophy {
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.victory-banner h2 {
+  font-size: 2.2rem;
+  letter-spacing: 6px;
+  background: linear-gradient(to right, var(--gold-bright), var(--gold-primary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 0.5rem;
+  font-weight: 900;
+  text-shadow: 0 0 15px rgba(200, 170, 110, 0.4);
+}
+
+.victory-banner h3 {
+  font-family: 'Outfit', sans-serif;
+  color: var(--text-light);
+  font-size: 1.4rem;
+  text-transform: none;
+  letter-spacing: 0.5px;
+  margin-bottom: 2rem;
+}
+
+.mvp-card {
+  display: inline-flex;
+  flex-direction: column;
+  background: rgba(200, 170, 110, 0.05);
+  border: 1px solid rgba(200, 170, 110, 0.2);
+  padding: 10px 25px;
+  border-radius: 4px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.mvp-badge {
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  color: var(--gold-primary);
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.mvp-name {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #fff;
+  margin-top: 2px;
+  text-shadow: 0 0 5px rgba(255,255,255,0.2);
+}

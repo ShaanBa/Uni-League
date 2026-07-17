@@ -185,14 +185,14 @@ def get_leaderboard(uni_id):
         cur = con.cursor(cursor_factory=RealDictCursor) # get results as dicts for ease of use in frontend 
         if uni_id == 'all':
             # all means we want all unis in LB, so no need for WHERE clause to filter by uni_id
-            query = """SELECT universities.uni_name, puuid, game_name, rank_tier, rank_division, lp, wins, losses
+            query = """SELECT universities.uni_name, puuid, game_name, tag, rank_tier, rank_division, lp, wins, losses, profile_icon_id, region
                     FROM summoners 
                     INNER JOIN users ON summoners.user_id = users.user_id 
                     JOIN universities ON users.uni_id = universities.uni_id"""
             cur.execute(query)        
         else:
             # specific uni means we need to filter by uni_id, so we add a WHERE clause for that
-            query = """SELECT universities.uni_name, puuid, game_name, rank_tier, rank_division, lp, wins, losses 
+            query = """SELECT universities.uni_name, puuid, game_name, tag, rank_tier, rank_division, lp, wins, losses, profile_icon_id, region 
                     FROM summoners 
                     INNER JOIN users ON summoners.user_id = users.user_id 
                     JOIN universities ON users.uni_id = universities.uni_id 
@@ -309,6 +309,23 @@ def get_profile_by_user(user_id):
             WHERE user_id = %s
         """
         cur.execute(query, (user_id,))
+        return cur.fetchone()
+
+def get_profile_by_puuid(puuid):
+    '''
+    Gets the full summoner profile by their puuid, including university info.
+    '''
+    with get_db_connection() as con:
+        cur = con.cursor(cursor_factory=RealDictCursor)
+        query = """
+            SELECT s.puuid, s.game_name, s.tag, s.rank_tier, s.rank_division, s.lp, s.wins, s.losses, s.profile_icon_id, s.region, s.last_refreshed,
+                   u.uni_id, u.uni_name, u.uni_logo_link, u.uni_domain
+            FROM summoners s
+            LEFT JOIN users us ON s.user_id = us.user_id
+            LEFT JOIN universities u ON us.uni_id = u.uni_id
+            WHERE s.puuid = %s
+        """
+        cur.execute(query, (puuid,))
         return cur.fetchone()
 
 # --- Verification & Security Extensions ---
@@ -447,7 +464,8 @@ def get_university_summoners(uni_id):
     with get_db_connection() as con:
         cur = con.cursor(cursor_factory=RealDictCursor)
         query = """
-            SELECT puuid, game_name, tag, region 
+            SELECT summoners.puuid, summoners.game_name, summoners.tag, summoners.region,
+                   summoners.rank_tier, summoners.rank_division, summoners.lp, summoners.profile_icon_id
             FROM summoners 
             INNER JOIN users ON summoners.user_id = users.user_id 
             WHERE users.uni_id = %s

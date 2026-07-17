@@ -45,6 +45,28 @@ function PlayerCard({ data }) {
   const winRate = totalGames > 0 ? Math.round((data.wins / totalGames) * 100) : 0;
   const winRateClass = winRate >= 55 ? 'high-winrate' : winRate < 48 ? 'low-winrate' : '';
 
+  // Calculate achievements
+  const isUnstoppable = data.recentMatches && data.recentMatches.length >= 3 && data.recentMatches.slice(0, 3).every(m => m.win);
+  
+  let avgKda = 0;
+  if (data.recentMatches && data.recentMatches.length > 0) {
+    const totalKills = data.recentMatches.reduce((sum, m) => sum + m.kills, 0);
+    const totalAssists = data.recentMatches.reduce((sum, m) => sum + m.assists, 0);
+    const totalDeaths = data.recentMatches.reduce((sum, m) => sum + m.deaths, 0);
+    avgKda = totalDeaths === 0 ? 10.0 : parseFloat(((totalKills + totalAssists) / totalDeaths).toFixed(2));
+  }
+  const isKdaDaemon = avgKda >= 4.0;
+  const isCarryMachine = winRate >= 55 && totalGames >= 5;
+
+  let avgCsMin = 0;
+  if (data.recentMatches && data.recentMatches.length > 0) {
+    const totalCs = data.recentMatches.reduce((sum, m) => sum + m.cs, 0);
+    const totalDuration = data.recentMatches.reduce((sum, m) => sum + (m.duration || 30), 0);
+    avgCsMin = totalDuration > 0 ? parseFloat((totalCs / totalDuration).toFixed(1)) : 0;
+  }
+  const isFarmerSpecialist = avgCsMin >= 7.0;
+  const isCollegiateIcon = ['MASTER', 'GRANDMASTER', 'CHALLENGER'].includes(data.rankTier?.toUpperCase());
+
   return (
     <div className="player-card">
       <div className="profile-icon-container">
@@ -79,22 +101,59 @@ function PlayerCard({ data }) {
       </div>
 
       {data.rankTier !== 'UNRANKED' && (
-        <div className="profile-stats-grid">
-          <div className="stat-box">
-            <span className="stat-label">LP</span>
-            <span className="stat-value">{data.lp}</span>
+        <>
+          <div className="profile-stats-grid">
+            <div className="stat-box">
+              <span className="stat-label">LP</span>
+              <span className="stat-value">{data.lp}</span>
+            </div>
+
+            <div className="stat-box">
+              <span className="stat-label">Record</span>
+              <span className="stat-value">{data.wins}W - {data.losses}L</span>
+            </div>
+
+            <div className="stat-box">
+              <span className="stat-label">Winrate</span>
+              <span className={`stat-value ${winRateClass}`}>{winRate}%</span>
+            </div>
           </div>
 
-          <div className="stat-box">
-            <span className="stat-label">Record</span>
-            <span className="stat-value">{data.wins}W - {data.losses}L</span>
+          <div className="achievements-section">
+            <div className="achievements-badges-grid">
+              {isCarryMachine && (
+                <span className="badge-chip carry-machine" title="Holds a 55%+ winrate over 5+ games">
+                  🔥 Carry Machine
+                </span>
+              )}
+              {isKdaDaemon && (
+                <span className="badge-chip kda-daemon" title={`Outstanding recent KDA score: ${avgKda}`}>
+                  ⚡ KDA Daemon
+                </span>
+              )}
+              {isUnstoppable && (
+                <span className="badge-chip unstoppable" title="On a 3+ game win streak in recent matches">
+                  🏆 Unstoppable
+                </span>
+              )}
+              {isFarmerSpecialist && (
+                <span className="badge-chip farmer" title={`Maintains an average CS per minute of ${avgCsMin}`}>
+                  🌾 CS Specialist
+                </span>
+              )}
+              {isCollegiateIcon && (
+                <span className="badge-chip apex-competitor" title="Reached Apex Tiers (Master, Grandmaster, Challenger)">
+                  👑 Apex Legend
+                </span>
+              )}
+              {!isCarryMachine && !isKdaDaemon && !isUnstoppable && !isFarmerSpecialist && !isCollegiateIcon && (
+                <span className="badge-chip challenger-in-training" title="Play matches to unlock specialized badges">
+                  🔰 Scholar Scout
+                </span>
+              )}
+            </div>
           </div>
-
-          <div className="stat-box">
-            <span className="stat-label">Winrate</span>
-            <span className={`stat-value ${winRateClass}`}>{winRate}%</span>
-          </div>
-        </div>
+        </>
       )}
 
       {/* Recent Match History Section */}
