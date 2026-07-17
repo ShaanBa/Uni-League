@@ -16,7 +16,7 @@ from db_client import (
     get_university_leaderboard, get_university_details, get_university_summoners,
     get_db_connection
 )
-from auth_utils import validate_email, hash_password, check_password, validate_password_strength
+from auth_utils import validate_email, hash_password, check_password, validate_password_strength, send_verification_email
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -172,12 +172,8 @@ def register_user():
             otp_code = f"{random.randint(100000, 999999)}"
             expires_at = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=15)
             set_user_verification_code(user_id, otp_code, expires_at, con=con)
-            
-            # Simulate sending verification email
-            print(f"\n=======================================================")
-            print(f"[EMAIL SIMULATION] To: {email}")
-            print(f"[EMAIL SIMULATION] Verification Code: {otp_code}")
-            print(f"=======================================================\n")
+            # Send verification email
+            send_verification_email(email, otp_code)
             
         return jsonify({"message": "User created! A verification code has been sent."}), 201 
         
@@ -279,10 +275,8 @@ def resend_verification(current_user_id):
     expires_at = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=15)
     
     set_user_verification_code(current_user_id, otp_code, expires_at)
-    print(f"\n=======================================================")
-    print(f"[EMAIL SIMULATION RESEND] To: {email}")
-    print(f"[EMAIL SIMULATION RESEND] Verification Code: {otp_code}")
-    print(f"=======================================================\n")
+    # Send verification email
+    send_verification_email(email, otp_code)
     
     return jsonify({"message": "Verification code resent!"})
 

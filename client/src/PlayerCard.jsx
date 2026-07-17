@@ -22,6 +22,16 @@ function PlayerCard({ data }) {
     return colors[tier] || colors['UNRANKED'];
   };
 
+  // Helper to color-code KDA ratios
+  const getKdaRatioColor = (ratio) => {
+    if (ratio === 'Perfect') return '#e2b13c'; // Gold-ish
+    const r = parseFloat(ratio);
+    if (r >= 5.0) return '#f4c874'; // Challenger Orange
+    if (r >= 4.0) return '#8c9eff'; // Hextech Blue/Purple
+    if (r >= 3.0) return '#20bf6b'; // Success Green
+    return '#a0a6b1'; // Muted Grey
+  };
+
   const rankColor = getRankColor(data.rankTier);
   const iconId = data.profile_icon_id || 29;
   const iconUrl = `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${iconId}.jpg`;
@@ -100,6 +110,10 @@ function PlayerCard({ data }) {
               // Data Dragon champion face icon URL
               const champImgUrl = `https://ddragon.leagueoflegends.com/cdn/13.24.1/img/champion/${match.championName}.png`;
               
+              // Calculate KDA metrics
+              const kdaRatioVal = match.deaths === 0 ? 'Perfect' : ((match.kills + match.assists) / match.deaths).toFixed(2);
+              const kdaRatioColor = getKdaRatioColor(kdaRatioVal);
+              
               return (
                 <div key={match.matchId} className={`match-row ${matchWinClass}`}>
                   <div className="match-champ-info">
@@ -120,7 +134,12 @@ function PlayerCard({ data }) {
                   </div>
                   
                   <div className="match-stats-info">
-                    <div className="match-kda-text">{match.kills} / {match.deaths} / {match.assists}</div>
+                    <div className="match-kda-text">
+                      {match.kills} / <span style={{ color: '#eb4d4b', fontWeight: 'bold' }}>{match.deaths}</span> / {match.assists}
+                    </div>
+                    <div style={{ fontSize: '0.72rem', color: kdaRatioColor, marginTop: '1px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      {kdaRatioVal === 'Perfect' ? 'Perfect KDA' : `${kdaRatioVal} KDA`}
+                    </div>
                     <div className="match-meta-text">{match.cs} CS • {match.duration}m</div>
                   </div>
                 </div>
