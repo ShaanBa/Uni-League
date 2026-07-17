@@ -147,7 +147,7 @@ function Leaderboard() {
                                 {leaderboardData.length > 0 ? (
                                     leaderboardData.map((player, index) => {
                                         const tierNameLower = (player.rank_tier || 'unranked').toLowerCase();
-                                        const emblemUrl = `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-mini/${tierNameLower}.png`;
+                                        const emblemUrl = `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-mini-crests/${tierNameLower}.png`;
                                         
                                         return (
                                             <tr 

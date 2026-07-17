@@ -38,7 +38,7 @@ function PlayerCard({ data }) {
 
   // CommunityDragon rank emblem mapping
   const tierNameLower = (data.rankTier || 'unranked').toLowerCase();
-  const emblemUrl = `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-mini/${tierNameLower}.png`;
+  const emblemUrl = `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-mini-crests/${tierNameLower}.png`;
 
   // Calculate Winrate details
   const totalGames = (data.wins || 0) + (data.losses || 0);
