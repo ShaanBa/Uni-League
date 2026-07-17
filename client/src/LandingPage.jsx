@@ -140,9 +140,9 @@ function LandingPage() {
                         <div className="feature-step">01</div>
                         <h3>Search &amp; Claim</h3>
                         <p>
-                            Find your summoner by game name and tagline. We generate a
-                            one-time Riot third-party code — paste it into your client
-                            settings to prove ownership.
+                            Find your summoner by game name and tagline. We provide a
+                            specific profile icon for you to equip in your League client
+                            to securely prove ownership.
                         </p>
                     </div>
 
