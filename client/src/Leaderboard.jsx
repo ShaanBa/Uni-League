@@ -218,10 +218,11 @@ function Leaderboard() {
                                             <td>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                                     <img 
-                                                        src={uni.uni_logo_link || `https://logo.clearbit.com/${uni.uni_domain}`} 
+                                                        src={uni.uni_logo_link || `https://www.google.com/s2/favicons?domain=${uni.uni_domain}&sz=128`} 
                                                         alt="" 
                                                         style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border-gold)' }}
                                                         onError={(e) => {
+                                                            e.target.onerror = null;
                                                             e.target.src = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg";
                                                         }}
                                                     />
@@ -268,9 +269,10 @@ function Leaderboard() {
                         <div className="uni-modal-header">
                             <img 
                                 className="uni-modal-logo" 
-                                src={activeUniDetail.uni_logo_link || `https://logo.clearbit.com/${activeUniDetail.uni_domain}`} 
+                                src={activeUniDetail.uni_logo_link || `https://www.google.com/s2/favicons?domain=${activeUniDetail.uni_domain}&sz=128`} 
                                 alt={`${activeUniDetail.uni_name} logo`}
                                 onError={(e) => {
+                                    e.target.onerror = null;
                                     e.target.src = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg";
                                 }}
                             />
@@ -301,6 +303,7 @@ function Leaderboard() {
                                                         src={champImgUrl} 
                                                         alt={match.championName}
                                                         onError={(e) => {
+                                                            e.target.onerror = null;
                                                             e.target.src = 'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg';
                                                         }}
                                                     />

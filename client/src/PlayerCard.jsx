@@ -108,6 +108,7 @@ function PlayerCard({ data }) {
                       src={champImgUrl} 
                       alt={match.championName} 
                       onError={(e) => {
+                        e.target.onerror = null;
                         // Fallback generic icon
                         e.target.src = 'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg';
                       }}
