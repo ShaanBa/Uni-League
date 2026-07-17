@@ -314,13 +314,14 @@ def get_university_leaderboard():
     with get_db_connection() as con:
         cur = con.cursor(cursor_factory=RealDictCursor)
         # Calculates combined power score per school using the same weights as calculate_score
+        # We explicitly CAST values to INTEGER to prevent JSON serialization errors (e.g. Decimal mapping) in Flask
         query = """
             SELECT 
                 u.uni_id,
                 u.uni_name,
                 u.uni_domain,
-                COUNT(s.summoner_id) as competitor_count,
-                COALESCE(SUM(
+                CAST(COUNT(s.summoner_id) AS INTEGER) as competitor_count,
+                CAST(COALESCE(SUM(
                     CASE s.rank_tier
                         WHEN 'UNRANKED' THEN 0
                         WHEN 'IRON' THEN 0
@@ -342,8 +343,8 @@ def get_university_leaderboard():
                         WHEN 'I' THEN 300
                         ELSE 0
                     END + 
-                    s.lp
-                ), 0) as total_power_score
+                    COALESCE(s.lp, 0)
+                ), 0) AS INTEGER) as total_power_score
             FROM universities u
             LEFT JOIN users us ON u.uni_id = us.uni_id
             LEFT JOIN summoners s ON us.user_id = s.user_id
