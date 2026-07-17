@@ -473,17 +473,60 @@ def get_university_summoners(uni_id):
         cur.execute(query, (uni_id,))
         return cur.fetchall()
 
+def fetch_university_name_from_api(domain):
+    try:
+        import requests
+        url = f"http://universities.hipolabs.com/search?domain={domain}"
+        response = requests.get(url, timeout=3)
+        if response.status_code == 200:
+            data = response.json()
+            if data and len(data) > 0:
+                # Find the one that matches domain exactly or take the first name
+                return data[0].get("name")
+    except Exception as e:
+        print(f"Error fetching university name from Hipo Labs API: {e}")
+    return None
+
 def create_university_dynamically(domain, con=None):
     '''
     Dynamically creates a university entry based on a new domain.
+    Attempts to fetch the official name from Hipo Labs University API first,
+    falling back to a local map of popular domains, and then string formatting.
     '''
-    name_part = domain.split('.')[0]
-    if len(name_part) <= 3:
-        formatted_name = name_part.upper()
-    else:
-        formatted_name = name_part.capitalize()
+    official_name = fetch_university_name_from_api(domain)
+    
+    if not official_name:
+        # Fallback local dictionary mapping for popular/problematic domains
+        COMMON_UNIVERSITIES = {
+            "ksu.edu": "Kansas State University",
+            "msu.edu": "Michigan State University",
+            "ucf.edu": "University of Central Florida",
+            "usf.edu": "University of South Florida",
+            "nyu.edu": "New York University",
+            "mit.edu": "Massachusetts Institute of Technology",
+            "asu.edu": "Arizona State University",
+            "fsu.edu": "Florida State University",
+            "osu.edu": "Ohio State University",
+            "psu.edu": "Penn State University",
+            "utexas.edu": "University of Texas at Austin",
+            "ufl.edu": "University of Florida",
+            "umich.edu": "University of Michigan",
+            "berkeley.edu": "UC Berkeley",
+            "ucla.edu": "UCLA",
+            "stanford.edu": "Stanford University",
+            "harvard.edu": "Harvard University"
+        }
+        official_name = COMMON_UNIVERSITIES.get(domain.lower())
         
-    uni_name = f"{formatted_name} University"
+    if not official_name:
+        # Fallback string parsing
+        name_part = domain.split('.')[0]
+        if len(name_part) <= 3:
+            formatted_name = name_part.upper()
+        else:
+            formatted_name = name_part.capitalize()
+        official_name = f"{formatted_name} University"
+        
     logo_link = f"https://www.google.com/s2/favicons?domain={domain}&sz=128"
     
     with db_session(con) as session_con:
@@ -495,7 +538,7 @@ def create_university_dynamically(domain, con=None):
                 ON CONFLICT (uni_domain) DO UPDATE SET uni_name = EXCLUDED.uni_name
                 RETURNING uni_id
             """
-            cur.execute(query, (uni_name, domain, logo_link))
+            cur.execute(query, (official_name, domain, logo_link))
             row = cur.fetchone()
             if row:
                 if isinstance(row, dict):
