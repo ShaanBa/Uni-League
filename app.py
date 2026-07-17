@@ -33,6 +33,17 @@ secret_key = os.environ.get("SECRET_KEY")
 if not secret_key:
     raise RuntimeError("SECRET KEY env variable is required!")
 app.config['SECRET_KEY'] = secret_key
+
+@app.route('/api/ping', methods=['GET'])
+def ping():
+    try:
+        with get_db_connection() as con:
+            cur = con.cursor()
+            cur.execute("SELECT 1")
+            cur.fetchone()
+        return jsonify({"status": "healthy", "database": "connected"}), 200
+    except Exception as e:
+        return jsonify({"status": "unhealthy", "error": str(e)}), 500
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
