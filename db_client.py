@@ -320,7 +320,7 @@ def get_university_leaderboard():
                 u.uni_id,
                 u.uni_name,
                 u.uni_domain,
-                u.uni_logo_link,
+                COALESCE(u.uni_logo_link, 'https://logo.clearbit.com/' || u.uni_domain) as uni_logo_link,
                 CAST(COUNT(s.summoner_id) AS INTEGER) as competitor_count,
                 CAST(COALESCE(SUM(
                     CASE s.rank_tier
@@ -358,7 +358,7 @@ def get_university_leaderboard():
 def get_university_details(uni_id):
     with get_db_connection() as con:
         cur = con.cursor(cursor_factory=RealDictCursor)
-        cur.execute("SELECT uni_id, uni_name, uni_domain, uni_logo_link FROM universities WHERE uni_id = %s", (uni_id,))
+        cur.execute("SELECT uni_id, uni_name, uni_domain, COALESCE(uni_logo_link, 'https://logo.clearbit.com/' || uni_domain) as uni_logo_link FROM universities WHERE uni_id = %s", (uni_id,))
         return cur.fetchone()
 
 def get_university_summoners(uni_id):
