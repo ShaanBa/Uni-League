@@ -131,48 +131,61 @@ def register_user():
     Returns:
         Response: JSON response telling the success/failure of registration
     """
-    data = request.get_json()  # get email and password from request body
-    if not data or 'email' not in data or 'password' not in data:
-        return jsonify({"error": "Email and password are required!"}), 400
-    
-    # get email and password, normalize email
-    email = data['email'].strip().lower()
-    password = data['password']
-    
-    # Validate password strength
-    is_strong, pass_err = validate_password_strength(password)
-    if not is_strong:
-        return jsonify({"error": pass_err}), 400
+    try:
+        data = request.get_json()  # get email and password from request body
+        if not data or 'email' not in data or 'password' not in data:
+            return jsonify({"error": "Email and password are required!"}), 400
         
-    # call validate_email to check validity of the email and also get the domain for university lookup
-    is_valid, extracted_domain = validate_email(email)
-    
-    if not is_valid:
-        return jsonify({"error": "Not valid email"}), 400 
-    uni_id = get_university_id(extracted_domain) #get the uni id by looking up domain in db
-    if not uni_id:
-        return jsonify({"error": "Not valid university id"}), 400 # if no uni id is found, return (bad request)
-    hashed_pass = hash_password(password) 
-    user = create_user(email, hashed_pass, uni_id)
-    if not user:
-        return jsonify({"error": "Not valid User"}), 400 # if user creation fails for some reason, return (bad request)
+        # get email and password, normalize email
+        email = data['email'].strip().lower()
+        password = data['password']
         
-    # Fetch user_id for verification code linkage
-    user_data = get_user_by_email(email)
-    if user_data:
-        user_id = user_data[0]
-        # Generate 6-digit verification pin
-        otp_code = f"{random.randint(100000, 999999)}"
-        expires_at = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=15)
-        set_user_verification_code(user_id, otp_code, expires_at)
+        # Check if email is already registered
+        if get_user_by_email(email):
+            return jsonify({"error": "Email is already registered!"}), 400
         
-        # Simulate sending verification email
-        print(f"\n=======================================================")
-        print(f"[EMAIL SIMULATION] To: {email}")
-        print(f"[EMAIL SIMULATION] Verification Code: {otp_code}")
-        print(f"=======================================================\n")
+        # Validate password strength
+        is_strong, pass_err = validate_password_strength(password)
+        if not is_strong:
+            return jsonify({"error": pass_err}), 400
+            
+        # call validate_email to check validity of the email and also get the domain for university lookup
+        is_valid, extracted_domain = validate_email(email)
         
-    return jsonify({"message": "User created! A verification code has been sent."}), 201 
+        if not is_valid:
+            return jsonify({"error": "Please enter a valid email address."}), 400 
+            
+        uni_id = get_university_id(extracted_domain) #get the uni id by looking up domain in db
+        if not uni_id:
+            return jsonify({
+                "error": f"The domain '{extracted_domain}' is not registered in our collegiate system. Please register with your student email."
+            }), 400
+            
+        hashed_pass = hash_password(password) 
+        user = create_user(email, hashed_pass, uni_id)
+        if not user:
+            return jsonify({"error": "Failed to create user account. Please try again."}), 400
+            
+        # Fetch user_id for verification code linkage
+        user_data = get_user_by_email(email)
+        if user_data:
+            user_id = user_data[0]
+            # Generate 6-digit verification pin
+            otp_code = f"{random.randint(100000, 999999)}"
+            expires_at = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=15)
+            set_user_verification_code(user_id, otp_code, expires_at)
+            
+            # Simulate sending verification email
+            print(f"\n=======================================================")
+            print(f"[EMAIL SIMULATION] To: {email}")
+            print(f"[EMAIL SIMULATION] Verification Code: {otp_code}")
+            print(f"=======================================================\n")
+            
+        return jsonify({"message": "User created! A verification code has been sent."}), 201 
+        
+    except Exception as e:
+        print(f"Registration Error: {e}")
+        return jsonify({"error": f"Internal Server Error: {str(e)}"}), 500
 
 @app.route('/api/leaderboard/universities', methods=['GET'])
 def university_leaderboard():
