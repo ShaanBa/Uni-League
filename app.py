@@ -5,13 +5,14 @@ import random
 import uuid
 from functools import wraps
 from flask import Flask, jsonify, request
-from riot_client import get_riot_account, get_rank_data, get_summoner_metadata, get_third_party_code
+from riot_client import get_riot_account, get_rank_data, get_summoner_metadata, get_third_party_code, get_recent_matches
 from db_client import (
     save_summoner, get_university_id, create_user, get_leaderboard, 
     get_user_by_email, claim_summoner_, update_summoner_rank, 
     get_summoner_by_user, get_profile_by_user, init_db,
     set_user_verification_code, get_user_verification, verify_user_email,
-    create_pending_claim, get_pending_claim, delete_pending_claim
+    create_pending_claim, get_pending_claim, delete_pending_claim,
+    get_university_leaderboard
 )
 from auth_utils import validate_email, hash_password, check_password, validate_password_strength
 from flask_cors import CORS
@@ -74,25 +75,26 @@ def parse_rank_data(rank_list):
                 } # return the rank info in a clean format
     return {'rankTier': 'UNRANKED', 'rankDivision': 'N/A', 'lp': 0, 'wins': 0, 'losses': 0} # if there is no ranked solo data, they are unranked (for the purposes of the app at least)
 
-@app.route('/api/search/<game_name>/<tag_line>')
-def search_user(game_name, tag_line):
+@app.route('/api/search/<region>/<game_name>/<tag_line>')
+def search_user(region, game_name, tag_line):
     """Gets a summoner using the game name and tag line and puts them in the database.
 
     Args:
+        region (str): The server region (e.g. na1, euw1)
         game_name (str): The user's League of Legends name
         tag_line (str): The users tag (#etc...)
 
     Returns:
         response: JSON response containing the summoner info
     """
-    print(f'Searching for {game_name}')
-    account = get_riot_account(game_name, tag_line) 
+    print(f'Searching for {game_name} in {region}')
+    account = get_riot_account(game_name, tag_line, region) 
     if not account or 'puuid' not in account:
-        return jsonify({"error": f"Summoner '{game_name}#{tag_line}' not found on Riot servers."}), 404
+        return jsonify({"error": f"Summoner '{game_name}#{tag_line}' not found on {region} server."}), 404
         
     puuid = account['puuid']
-    rank = get_rank_data(puuid)
-    metadata = get_summoner_metadata(puuid)
+    rank = get_rank_data(puuid, region)
+    metadata = get_summoner_metadata(puuid, region)
     
     clean_rank = parse_rank_data(rank) # the rank is a cluttered object so we clean it to only get what we need
     profile_icon = metadata.get('profileIconId', 29) if isinstance(metadata, dict) else 29
@@ -107,10 +109,15 @@ def search_user(game_name, tag_line):
         "lp": clean_rank['lp'],
         "wins": clean_rank['wins'],
         "losses": clean_rank['losses'],
-        "profile_icon_id": profile_icon
-
+        "profile_icon_id": profile_icon,
+        "region": region
     }
     save_summoner(full_summoner) #add to db
+    
+    # Fetch recent match statistics
+    matches = get_recent_matches(puuid, region, count=5)
+    full_summoner["recentMatches"] = matches
+    
     return jsonify(full_summoner) #return in json so we can use 
 
 @app.route('/api/register', methods=['POST'])
@@ -166,6 +173,12 @@ def register_user():
         print(f"=======================================================\n")
         
     return jsonify({"message": "User created! A verification code has been sent."}), 201 
+
+@app.route('/api/leaderboard/universities', methods=['GET'])
+def university_leaderboard():
+    """Get standings for all universities in the system
+    """
+    return jsonify(get_university_leaderboard())
 
 @app.route('/api/leaderboard/<uni_id>', methods=['GET'])
 def leaderboard(uni_id):
@@ -346,12 +359,12 @@ def refresh_summoner(current_user_id):
     if not is_verified:
         return jsonify({"error": "Please verify your student email first!"}), 403
         
-    puuid = get_summoner_by_user(current_user_id)
+    puuid, region = get_summoner_by_user(current_user_id)
     if not puuid:
         return jsonify({'error': "No summoner claimed for this user yet!"}), 400
         
-    metadata = get_summoner_metadata(puuid)
-    rank = get_rank_data(puuid)
+    metadata = get_summoner_metadata(puuid, region)
+    rank = get_rank_data(puuid, region)
     clean_rank = parse_rank_data(rank)
     profile_icon = metadata.get('profileIconId', 29) if isinstance(metadata, dict) else 29
     
@@ -379,6 +392,9 @@ def get_user_profile(current_user_id):
     if not profile:
         return jsonify({"error": "Profile not found", "is_verified": is_verified}), 404
         
+    # Get recent matches
+    matches = get_recent_matches(profile['puuid'], profile.get('region', 'na1'), count=5)
+        
     return jsonify({
         "gameName": profile['game_name'],
         "tagLine": profile['tag'],
@@ -388,7 +404,9 @@ def get_user_profile(current_user_id):
         "wins": profile.get('wins', 0),
         "losses": profile.get('losses', 0),
         "profile_icon_id": profile.get('profile_icon_id', 29),
-        "is_verified": is_verified
+        "is_verified": is_verified,
+        "region": profile.get('region', 'na1'),
+        "recentMatches": matches
     })
     
 if __name__ == '__main__':

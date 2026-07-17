@@ -26,6 +26,10 @@ function PlayerCard({ data }) {
   const iconId = data.profile_icon_id || 29;
   const iconUrl = `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${iconId}.jpg`;
 
+  // CommunityDragon rank emblem mapping
+  const tierNameLower = (data.rankTier || 'unranked').toLowerCase();
+  const emblemUrl = `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-mini/${tierNameLower}.png`;
+
   // Calculate Winrate details
   const totalGames = (data.wins || 0) + (data.losses || 0);
   const winRate = totalGames > 0 ? Math.round((data.wins / totalGames) * 100) : 0;
@@ -46,9 +50,22 @@ function PlayerCard({ data }) {
         <span className="player-tag-row">#{data.tagLine || data.tag}</span>
       </div>
 
-      <div className="rank-line" style={{ color: rankColor }}>
-        {data.rankTier}
-        {data.rankDivision && data.rankDivision !== 'N/A' ? ` ${data.rankDivision}` : ''}
+      <div className="rank-row-container">
+        <img 
+          className="rank-emblem-badge"
+          src={emblemUrl} 
+          alt={`${data.rankTier} emblem`} 
+          onError={(e) => e.target.style.display = 'none'} 
+        />
+        <div className="rank-line" style={{ color: rankColor }}>
+          {data.rankTier}
+          {data.rankDivision && data.rankDivision !== 'N/A' ? ` ${data.rankDivision}` : ''}
+        </div>
+        {data.region && (
+          <span style={{ fontSize: '0.75rem', padding: '2px 6px', background: 'rgba(0, 210, 241, 0.1)', border: '1px solid rgba(0, 210, 241, 0.2)', color: 'var(--hextech-blue)', borderRadius: '2px', textTransform: 'uppercase', fontWeight: 'bold' }}>
+            {data.region}
+          </span>
+        )}
       </div>
 
       {data.rankTier !== 'UNRANKED' && (
@@ -68,6 +85,48 @@ function PlayerCard({ data }) {
             <span className={`stat-value ${winRateClass}`}>{winRate}%</span>
           </div>
         </div>
+      )}
+
+      {/* Recent Match History Section */}
+      {data.recentMatches && data.recentMatches.length > 0 && (
+        <>
+          <div className="matches-section-title">Recent Matches</div>
+          <div className="matches-container">
+            {data.recentMatches.map((match) => {
+              const matchWinClass = match.win ? 'match-row-win' : 'match-row-loss';
+              const outcomeText = match.win ? 'Win' : 'Loss';
+              const outcomeClass = match.win ? 'text-win' : 'text-loss';
+              
+              // Data Dragon champion face icon URL
+              const champImgUrl = `https://ddragon.leagueoflegends.com/cdn/13.24.1/img/champion/${match.championName}.png`;
+              
+              return (
+                <div key={match.matchId} className={`match-row ${matchWinClass}`}>
+                  <div className="match-champ-info">
+                    <img 
+                      className="match-champ-icon" 
+                      src={champImgUrl} 
+                      alt={match.championName} 
+                      onError={(e) => {
+                        // Fallback generic icon
+                        e.target.src = 'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg';
+                      }}
+                    />
+                    <div>
+                      <div className="match-champ-name">{match.championName}</div>
+                      <div className={`match-outcome-text ${outcomeClass}`}>{outcomeText}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="match-stats-info">
+                    <div className="match-kda-text">{match.kills} / {match.deaths} / {match.assists}</div>
+                    <div className="match-meta-text">{match.cs} CS • {match.duration}m</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
       )}
     </div>
   );

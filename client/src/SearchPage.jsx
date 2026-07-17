@@ -3,6 +3,7 @@ import PlayerCard from "./PlayerCard"
 
 function SearchPage() {
     // state 
+    const [region, setRegion] = useState("na1")
     const [gameName, setGameName] = useState("") 
     const [tagLine, setTagLine] = useState("")
     const [playerData, setPlayerData] = useState(null)
@@ -32,7 +33,7 @@ function SearchPage() {
         const cleanTag = tagLine.trim().replace(/^#/, "")
 
         try {
-            const response = await fetch(`/api/search/${encodeURIComponent(gameName.trim())}/${encodeURIComponent(cleanTag)}`)
+            const response = await fetch(`/api/search/${region}/${encodeURIComponent(gameName.trim())}/${encodeURIComponent(cleanTag)}`)
             const data = await response.json()
             
             if (response.ok) {
@@ -122,12 +123,33 @@ function SearchPage() {
             {error && <div className="error-message">{error}</div>}
 
             <div className="search-controls">
+                <select 
+                    value={region} 
+                    onChange={(e) => setRegion(e.target.value)}
+                    className="hextech-select"
+                    style={{ padding: '0.85rem 1.2rem', margin: '0', height: '48px', border: '1px solid var(--border-blue)' }}
+                    disabled={loading}
+                >
+                    <option value="na1">NA</option>
+                    <option value="euw1">EUW</option>
+                    <option value="eun1">EUNE</option>
+                    <option value="kr">KR</option>
+                    <option value="oc1">OCE</option>
+                    <option value="br1">BR</option>
+                    <option value="la1">LAN</option>
+                    <option value="la2">LAS</option>
+                    <option value="jp1">JP</option>
+                    <option value="tr1">TR</option>
+                    <option value="ru">RU</option>
+                </select>
+
                 <input 
                     type='text'
                     placeholder="Game Name (e.g. Hide on bush)"
                     value={gameName}
                     onChange={(e) => setGameName(e.target.value)}
                     disabled={loading}
+                    style={{ margin: '0' }}
                 />
 
                 <div className="tag-input-wrapper">

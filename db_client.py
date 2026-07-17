@@ -33,8 +33,8 @@ def save_summoner(data: dict):
         #below query uses ON CONFLICT, because if summoner exists, we should update their info
         # so in the case of existing summoner, update their game name, tag, and rank info. In the case of new summoner, just insert them as normal
         query = ("""
-            INSERT INTO summoners (puuid, game_name, tag, rank_tier, rank_division, lp, wins, losses, profile_icon_id)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) 
+            INSERT INTO summoners (puuid, game_name, tag, rank_tier, rank_division, lp, wins, losses, profile_icon_id, region)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
             ON CONFLICT (puuid) 
             DO UPDATE SET
                 game_name = EXCLUDED.game_name,
@@ -44,10 +44,11 @@ def save_summoner(data: dict):
                 lp = EXCLUDED.lp,
                 wins = EXCLUDED.wins,
                 losses = EXCLUDED.losses,
-                profile_icon_id = EXCLUDED.profile_icon_id
+                profile_icon_id = EXCLUDED.profile_icon_id,
+                region = EXCLUDED.region
             """)
         # the value is a tuple of the data we want to insert/update, in the same order as the query placeholders
-        value = (data['puuid'], data['gameName'], data['tagLine'], data['rankTier'], data['rankDivision'], data['lp'], data['wins'], data['losses'], data['profile_icon_id'])
+        value = (data['puuid'], data['gameName'], data['tagLine'], data['rankTier'], data['rankDivision'], data['lp'], data['wins'], data['losses'], data['profile_icon_id'], data.get('region', 'na1'))
         cur.execute(query, value)
     
 def get_university_id(domain):
@@ -191,15 +192,15 @@ def get_summoner_by_user(user_id):
     """
     with get_db_connection() as con:
         cur = con.cursor()
-        # get puuid for a user_id, 
-        # used in profile page to get the summoner info for the user, and also in refresh endpoint to get the puuid to know which summoner to update the rank info for
+        # get puuid and region for a user_id, 
+        # used in profile page to get the summoner info for the user, and also in refresh endpoint to know which summoner and region to update
         query = '''
-        SELECT puuid FROM summoners 
+        SELECT puuid, region FROM summoners 
         WHERE user_id = %s
         '''
         cur.execute(query, (user_id,))
         data = cur.fetchone()
-        return data[0] if data else None
+        return (data[0], data[1]) if data else (None, None)
 
 def update_summoner_rank(puuid, rank_tier, rank_division, lp, wins, losses, profile_icon_id):
     '''
@@ -227,7 +228,7 @@ def get_profile_by_user(user_id):
     with get_db_connection() as con:
         cur = con.cursor(cursor_factory=RealDictCursor)
         query = """
-            SELECT game_name, tag, rank_tier, rank_division, lp, wins, losses, profile_icon_id
+            SELECT puuid, game_name, tag, rank_tier, rank_division, lp, wins, losses, profile_icon_id, region
             FROM summoners 
             WHERE user_id = %s
         """
@@ -245,6 +246,9 @@ def init_db():
         # Add email verification code columns to users table
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_code VARCHAR(6)")
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_code_expires TIMESTAMP")
+        
+        # Add region column to summoners table
+        cur.execute("ALTER TABLE summoners ADD COLUMN IF NOT EXISTS region VARCHAR(8) DEFAULT 'na1'")
         
         # Create pending_claims table for Riot summoner third party verification
         cur.execute("""
@@ -301,3 +305,50 @@ def delete_pending_claim(user_id, puuid):
     with get_db_connection() as con:
         cur = con.cursor()
         cur.execute("DELETE FROM pending_claims WHERE user_id = %s AND puuid = %s", (user_id, puuid))
+
+def get_university_leaderboard():
+    '''
+    Aggregates standings for all universities based on player statistics.
+    Returns: list of dicts: A list of universities sorted by their aggregated total power score.
+    '''
+    with get_db_connection() as con:
+        cur = con.cursor(cursor_factory=RealDictCursor)
+        # Calculates combined power score per school using the same weights as calculate_score
+        query = """
+            SELECT 
+                u.uni_id,
+                u.uni_name,
+                u.uni_domain,
+                COUNT(s.summoner_id) as competitor_count,
+                COALESCE(SUM(
+                    CASE s.rank_tier
+                        WHEN 'UNRANKED' THEN 0
+                        WHEN 'IRON' THEN 0
+                        WHEN 'BRONZE' THEN 400
+                        WHEN 'SILVER' THEN 800
+                        WHEN 'GOLD' THEN 1200
+                        WHEN 'PLATINUM' THEN 1600
+                        WHEN 'EMERALD' THEN 2000
+                        WHEN 'DIAMOND' THEN 2400
+                        WHEN 'MASTER' THEN 2800
+                        WHEN 'GRANDMASTER' THEN 3200
+                        WHEN 'CHALLENGER' THEN 3600
+                        ELSE 0
+                    END + 
+                    CASE s.rank_division
+                        WHEN 'IV' THEN 0
+                        WHEN 'III' THEN 100
+                        WHEN 'II' THEN 200
+                        WHEN 'I' THEN 300
+                        ELSE 0
+                    END + 
+                    s.lp
+                ), 0) as total_power_score
+            FROM universities u
+            LEFT JOIN users us ON u.uni_id = us.uni_id
+            LEFT JOIN summoners s ON us.user_id = s.user_id
+            GROUP BY u.uni_id, u.uni_name, u.uni_domain
+            ORDER BY total_power_score DESC
+        """
+        cur.execute(query)
+        return cur.fetchall()
