@@ -8,6 +8,11 @@ function Leaderboard() {
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all'); 
     
+    // University matches details modal state
+    const [activeUniDetail, setActiveUniDetail] = useState(null);
+    const [uniDetailMatches, setUniDetailMatches] = useState([]);
+    const [loadingUniMatches, setLoadingUniMatches] = useState(false);
+
     const userUniId = localStorage.getItem('uni_id'); // Grab the user's school if they are logged in
 
     // Fetch individual players standings
@@ -41,6 +46,27 @@ function Leaderboard() {
             fetchUniLeaderboard();
         }
     }, [standingsType]);
+
+    // Fetch university match history details when modal opens
+    useEffect(() => {
+        if (activeUniDetail) {
+            const fetchMatches = async () => {
+                setLoadingUniMatches(true);
+                setUniDetailMatches([]);
+                try {
+                    const response = await fetch(`/api/university/${activeUniDetail.uni_id}/matches`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        setUniDetailMatches(data.matches || []);
+                    }
+                } catch (err) {
+                    console.error("Error fetching university team match history:", err);
+                }
+                setLoadingUniMatches(false);
+            };
+            fetchMatches();
+        }
+    }, [activeUniDetail]);
 
     const getRankColor = (tier) => {
         const colors = {
@@ -184,13 +210,26 @@ function Leaderboard() {
                                     uniLeaderboardData.map((uni, index) => (
                                         <tr 
                                             key={uni.uni_id} 
-                                            className={index === 0 ? 'top-3 top-3-1' : index === 1 ? 'top-3 top-3-2' : index === 2 ? 'top-3 top-3-3' : ''}
+                                            onClick={() => setActiveUniDetail(uni)}
+                                            className={`clickable-row ${index === 0 ? 'top-3 top-3-1' : index === 1 ? 'top-3 top-3-2' : index === 2 ? 'top-3 top-3-3' : ''}`}
                                         >
                                             <td className="col-rank">{index + 1}</td>
                                             
                                             <td>
-                                                <div className="summoner-name" style={{ fontFamily: 'Cinzel', letterSpacing: '1px' }}>
-                                                    {uni.uni_name}
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                    {uni.uni_logo_link ? (
+                                                        <img 
+                                                            src={uni.uni_logo_link} 
+                                                            alt="" 
+                                                            style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border-gold)' }}
+                                                            onError={(e) => {
+                                                                e.target.style.display = 'none';
+                                                            }}
+                                                        />
+                                                    ) : null}
+                                                    <div className="summoner-name" style={{ fontFamily: 'Cinzel', letterSpacing: '1px' }}>
+                                                        {uni.uni_name}
+                                                    </div>
                                                 </div>
                                             </td>
                                             
@@ -219,6 +258,80 @@ function Leaderboard() {
                             </tbody>
                         </table>
                     )}
+                </div>
+            )}
+
+            {/* --- University Details Modal Overlay --- */}
+            {activeUniDetail && (
+                <div className="modal-overlay" onClick={() => setActiveUniDetail(null)}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                        <button className="modal-close" onClick={() => setActiveUniDetail(null)}>&times;</button>
+                        
+                        <div className="uni-modal-header">
+                            <img 
+                                className="uni-modal-logo" 
+                                src={activeUniDetail.uni_logo_link || "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg"} 
+                                alt={`${activeUniDetail.uni_name} logo`}
+                                onError={(e) => {
+                                    e.target.src = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg";
+                                }}
+                            />
+                            <h3 className="uni-modal-title">{activeUniDetail.uni_name}</h3>
+                            <span className="uni-modal-domain">@{activeUniDetail.uni_domain}</span>
+                        </div>
+                        
+                        <h4 className="matches-section-title" style={{ marginTop: '0', fontSize: '0.85rem' }}>University Team Match History</h4>
+                        
+                        {loadingUniMatches ? (
+                            <div style={{ padding: '2rem 0', fontStyle: 'italic', color: 'var(--hextech-blue)', textAlign: 'center' }}>
+                                Retrieving team matches from the Rift...
+                            </div>
+                        ) : (
+                            <div className="matches-container" style={{ marginTop: '15px', maxHeight: '350px', overflowY: 'auto' }}>
+                                {uniDetailMatches.length > 0 ? (
+                                    uniDetailMatches.map((match, idx) => {
+                                        const matchWinClass = match.win ? 'match-row-win' : 'match-row-loss';
+                                        const outcomeText = match.win ? 'Win' : 'Loss';
+                                        const outcomeClass = match.win ? 'text-win' : 'text-loss';
+                                        const champImgUrl = `https://ddragon.leagueoflegends.com/cdn/13.24.1/img/champion/${match.championName}.png`;
+                                        
+                                        return (
+                                            <div key={match.matchId + '_' + idx} className={`match-row ${matchWinClass}`} style={{ marginBottom: '8px' }}>
+                                                <div className="match-champ-info">
+                                                    <img 
+                                                        className="match-champ-icon" 
+                                                        src={champImgUrl} 
+                                                        alt={match.championName}
+                                                        onError={(e) => {
+                                                            e.target.src = 'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg';
+                                                        }}
+                                                    />
+                                                    <div>
+                                                        <div className="match-champ-name">{match.championName}</div>
+                                                        <div style={{ fontSize: '0.75rem', color: 'var(--gold-primary)', fontWeight: 'bold' }}>
+                                                            {match.player_name}
+                                                        </div>
+                                                        <div className={`match-outcome-text ${outcomeClass}`} style={{ fontSize: '0.7rem' }}>
+                                                            {outcomeText}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="match-stats-info">
+                                                    <div className="match-kda-text" style={{ fontSize: '0.8rem' }}>{match.kills} / {match.deaths} / {match.assists}</div>
+                                                    <div className="match-meta-text" style={{ fontSize: '0.65rem' }}>{match.cs} CS • {match.duration}m</div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                ) : (
+                                    <div style={{ textAlign: 'center', padding: '2rem 0', color: 'var(--text-main)', fontStyle: 'italic', fontSize: '0.85rem' }}>
+                                        No recent match data available for this university's competitors.
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
         </div>

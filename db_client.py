@@ -320,6 +320,7 @@ def get_university_leaderboard():
                 u.uni_id,
                 u.uni_name,
                 u.uni_domain,
+                u.uni_logo_link,
                 CAST(COUNT(s.summoner_id) AS INTEGER) as competitor_count,
                 CAST(COALESCE(SUM(
                     CASE s.rank_tier
@@ -348,8 +349,26 @@ def get_university_leaderboard():
             FROM universities u
             LEFT JOIN users us ON u.uni_id = us.uni_id
             LEFT JOIN summoners s ON us.user_id = s.user_id
-            GROUP BY u.uni_id, u.uni_name, u.uni_domain
+            GROUP BY u.uni_id, u.uni_name, u.uni_domain, u.uni_logo_link
             ORDER BY total_power_score DESC
         """
         cur.execute(query)
+        return cur.fetchall()
+
+def get_university_details(uni_id):
+    with get_db_connection() as con:
+        cur = con.cursor(cursor_factory=RealDictCursor)
+        cur.execute("SELECT uni_id, uni_name, uni_domain, uni_logo_link FROM universities WHERE uni_id = %s", (uni_id,))
+        return cur.fetchone()
+
+def get_university_summoners(uni_id):
+    with get_db_connection() as con:
+        cur = con.cursor(cursor_factory=RealDictCursor)
+        query = """
+            SELECT puuid, game_name, tag, region 
+            FROM summoners 
+            INNER JOIN users ON summoners.user_id = users.user_id 
+            WHERE users.uni_id = %s
+        """
+        cur.execute(query, (uni_id,))
         return cur.fetchall()

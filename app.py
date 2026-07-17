@@ -12,7 +12,7 @@ from db_client import (
     get_summoner_by_user, get_profile_by_user, init_db,
     set_user_verification_code, get_user_verification, verify_user_email,
     create_pending_claim, get_pending_claim, delete_pending_claim,
-    get_university_leaderboard
+    get_university_leaderboard, get_university_details, get_university_summoners
 )
 from auth_utils import validate_email, hash_password, check_password, validate_password_strength
 from flask_cors import CORS
@@ -409,5 +409,28 @@ def get_user_profile(current_user_id):
         "recentMatches": matches
     })
     
+@app.route('/api/university/<uni_id>/matches', methods=['GET'])
+def get_university_matches(uni_id):
+    uni = get_university_details(uni_id)
+    if not uni:
+        return jsonify({"error": "University not found!"}), 404
+        
+    summoners = get_university_summoners(uni_id)
+    all_matches = []
+    for s in summoners:
+        matches = get_recent_matches(s['puuid'], s.get('region', 'na1'), count=3)
+        for m in matches:
+            m['player_name'] = f"{s['game_name']}#{s['tag']}"
+            all_matches.append(m)
+            
+    # Return university info and combined match history
+    return jsonify({
+        "uni_id": uni['uni_id'],
+        "uni_name": uni['uni_name'],
+        "uni_domain": uni['uni_domain'],
+        "uni_logo_link": uni['uni_logo_link'],
+        "matches": all_matches
+    })
+
 if __name__ == '__main__':
     app.run(debug=True)
