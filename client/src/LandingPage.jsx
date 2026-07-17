@@ -13,7 +13,7 @@ function LandingPage() {
             try {
                 const [uniRes, playerRes] = await Promise.all([
                     fetch('/api/leaderboard/universities'),
-                    fetch('/api/leaderboard/players')
+                    fetch('/api/leaderboard/all')
                 ]);
                 if (uniRes.ok) {
                     const uniData = await uniRes.json();

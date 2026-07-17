@@ -183,8 +183,8 @@ def get_leaderboard(uni_id):
     '''
     with get_db_connection() as con:
         cur = con.cursor(cursor_factory=RealDictCursor) # get results as dicts for ease of use in frontend 
-        if uni_id == 'all':
-            # all means we want all unis in LB, so no need for WHERE clause to filter by uni_id
+        if uni_id == 'all' or uni_id == 'players':
+            # all/players means we want all unis in LB, so no need for WHERE clause to filter by uni_id
             query = """SELECT universities.uni_name, puuid, game_name, tag, rank_tier, rank_division, lp, wins, losses, profile_icon_id, region
                     FROM summoners 
                     INNER JOIN users ON summoners.user_id = users.user_id 
