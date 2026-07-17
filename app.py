@@ -14,7 +14,8 @@ from db_client import (
     set_user_verification_code, get_user_verification, verify_user_email,
     create_pending_claim, get_pending_claim, delete_pending_claim,
     get_university_leaderboard, get_university_details, get_university_summoners,
-    get_db_connection, create_university_dynamically
+    get_db_connection, create_university_dynamically,
+    get_summoner_owner
 )
 from auth_utils import validate_email, hash_password, check_password, validate_password_strength, send_verification_email
 from flask_cors import CORS
@@ -330,6 +331,9 @@ def claim_summoner_verify(current_user_id):
     if not metadata or 'profileIconId' not in metadata:
         # Development fallback if Riot API is not fully reachable or Summoner ID is missing
         print("[CLAIM BYPASS] Riot API key is missing or returning error. Bypassing check in local development mode.")
+        existing_owner = get_summoner_owner(puuid)
+        if existing_owner and existing_owner != current_user_id:
+            return jsonify({"error": "This summoner is already claimed by another user."}), 409
         claim_summoner_(current_user_id, puuid)
         delete_pending_claim(current_user_id, puuid)
         return jsonify({"message": "Summoner claimed! (Dev Mode: Bypassed third party verification)"})
@@ -339,18 +343,27 @@ def claim_summoner_verify(current_user_id):
     api_key = os.getenv("RIOT_API_KEY")
     if not api_key:
         print("[CLAIM BYPASS] RIOT_API_KEY is not set. Bypassing verification for local development.")
+        existing_owner = get_summoner_owner(puuid)
+        if existing_owner and existing_owner != current_user_id:
+            return jsonify({"error": "This summoner is already claimed by another user."}), 409
         claim_summoner_(current_user_id, puuid)
         delete_pending_claim(current_user_id, puuid)
         return jsonify({"message": "Summoner claimed! (Dev Mode: Bypassed third party verification)"})
         
     if current_icon_id == expected_icon_id:
+        existing_owner = get_summoner_owner(puuid)
+        if existing_owner and existing_owner != current_user_id:
+            return jsonify({"error": "This summoner is already claimed by another user."}), 409
         claim_summoner_(current_user_id, puuid)
         delete_pending_claim(current_user_id, puuid)
         return jsonify({"message": "Summoner claimed successfully!"})
     else:
         # Check manual dev bypass override
-        if data.get('bypass_code') == 'DEV_BYPASS':
+        if os.environ.get('FLASK_ENV') == 'development' and data.get('bypass_code') == 'DEV_BYPASS':
             print("[CLAIM BYPASS] Manual developer override used.")
+            existing_owner = get_summoner_owner(puuid)
+            if existing_owner and existing_owner != current_user_id:
+                return jsonify({"error": "This summoner is already claimed by another user."}), 409
             claim_summoner_(current_user_id, puuid)
             delete_pending_claim(current_user_id, puuid)
             return jsonify({"message": "Summoner claimed! (Bypassed via Developer Override)"})

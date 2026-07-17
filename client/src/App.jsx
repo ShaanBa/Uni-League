@@ -7,6 +7,7 @@ import Login from './Login'
 import Profile from './Profile'
 import LandingPage from './LandingPage'
 import MatchSimulator from './MatchSimulator'
+import NotFound from './NotFound'
 
 function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -64,6 +65,7 @@ function App() {
                         <Route path="/profile" element={
                             isLoggedIn ? <Profile /> : <Navigate to="/login" />
                         } />
+                        <Route path="*" element={<NotFound />} />
                     </Routes>
                 </main>
             </div>

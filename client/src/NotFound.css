@@ -1,0 +1,32 @@
+.not-found-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 6rem 2rem;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.not-found-code {
+    font-family: 'Outfit', sans-serif;
+    font-size: 6rem;
+    font-weight: 700;
+    color: rgba(200, 170, 110, 0.15);
+    line-height: 1;
+    margin-bottom: 1rem;
+}
+
+.not-found-container h1 {
+    font-family: 'Cinzel', serif;
+    font-size: 1.4rem;
+    color: var(--text-light);
+    margin-bottom: 0.75rem;
+    letter-spacing: 2px;
+}
+
+.not-found-container p {
+    color: var(--text-main);
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+}

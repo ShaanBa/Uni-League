@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useToast } from './Toast';
 
 function Register() {
+    const [, showToast, ToastContainer] = useToast();
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [error, setError] = useState(null)
@@ -37,7 +39,7 @@ function Register() {
                 // Clear fields
                 setEmail("")
                 setPassword("")
-                alert("Account created successfully! Redirecting to login.")
+                showToast("Account created successfully! Redirecting to login.", 'success')
                 navigate("/login")
             } else {
                 const data = await response.json()
@@ -52,6 +54,7 @@ function Register() {
 
     return (
         <div className="form-container">
+            <ToastContainer />
             <h2>Join the League</h2>
             <p style={{ fontSize: '0.85rem', marginBottom: '1.5rem', textAlign: 'center' }}>
                 Create a student profile to claim your summoner and track your standings.

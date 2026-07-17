@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import './Leaderboard.css';
 import PlayerCard from './PlayerCard';
+import { getRankColor, FALLBACK_ICON } from './utils';
 
 function Leaderboard() {
     const [standingsType, setStandingsType] = useState('individual'); // 'individual' or 'university'
     const [leaderboardData, setLeaderboardData] = useState([]);
     const [uniLeaderboardData, setUniLeaderboardData] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [filter, setFilter] = useState('all'); 
     
     // University matches details modal state
@@ -26,10 +28,17 @@ function Leaderboard() {
         if (standingsType === 'individual') {
             const fetchLeaderboard = async () => {
                 setLoading(true);
-                const response = await fetch(`/api/leaderboard/${filter}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    setLeaderboardData(data);
+                setError(null);
+                try {
+                    const response = await fetch(`/api/leaderboard/${filter}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        setLeaderboardData(data);
+                    } else {
+                        setError('Failed to load player standings.');
+                    }
+                } catch (err) {
+                    setError('Could not connect to the server. Please try again later.');
                 }
                 setLoading(false);
             };
@@ -42,10 +51,17 @@ function Leaderboard() {
         if (standingsType === 'university') {
             const fetchUniLeaderboard = async () => {
                 setLoading(true);
-                const response = await fetch('/api/leaderboard/universities');
-                if (response.ok) {
-                    const data = await response.json();
-                    setUniLeaderboardData(data);
+                setError(null);
+                try {
+                    const response = await fetch('/api/leaderboard/universities');
+                    if (response.ok) {
+                        const data = await response.json();
+                        setUniLeaderboardData(data);
+                    } else {
+                        setError('Failed to load university standings.');
+                    }
+                } catch (err) {
+                    setError('Could not connect to the server. Please try again later.');
                 }
                 setLoading(false);
             };
@@ -97,21 +113,15 @@ function Leaderboard() {
         }
     }, [activePlayerDetail]);
 
-    const getRankColor = (tier) => {
-        const colors = {
-            'IRON': '#514f4e', 'BRONZE': '#8c513a', 'SILVER': '#80989d',
-            'GOLD': '#cd8837', 'PLATINUM': '#4e9996', 'EMERALD': '#2a7c46',
-            'DIAMOND': '#576bce', 'MASTER': '#9d48e0', 'GRANDMASTER': '#d31a45',
-            'CHALLENGER': '#f4c874', 'UNRANKED': '#a0a6b1'
-        };
-        return colors[tier] || colors['UNRANKED'];
-    };
+
 
     const hasPodium = standingsType === 'individual' && leaderboardData.length >= 3;
     const hasUniPodium = standingsType === 'university' && uniLeaderboardData.length >= 3;
 
     return (
         <div>
+            {error && <div className="error-message">{error}</div>}
+
             {/* Top Navigation Tabs */}
             <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid var(--border-gold)', paddingBottom: '1rem' }}>
                 <button 
@@ -244,7 +254,7 @@ function Leaderboard() {
                                     alt=""
                                     onError={(e) => {
                                         e.target.onerror = null;
-                                        e.target.src = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg";
+                                        e.target.src = FALLBACK_ICON;
                                     }}
                                 />
                                 <span className="podium-badge silver">2nd</span>
@@ -268,7 +278,7 @@ function Leaderboard() {
                                     alt=""
                                     onError={(e) => {
                                         e.target.onerror = null;
-                                        e.target.src = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg";
+                                        e.target.src = FALLBACK_ICON;
                                     }}
                                 />
                                 <span className="podium-badge gold">1st</span>
@@ -291,7 +301,7 @@ function Leaderboard() {
                                     alt=""
                                     onError={(e) => {
                                         e.target.onerror = null;
-                                        e.target.src = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg";
+                                        e.target.src = FALLBACK_ICON;
                                     }}
                                 />
                                 <span className="podium-badge bronze">3rd</span>
@@ -416,7 +426,7 @@ function Leaderboard() {
                                                             style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border-gold)' }}
                                                             onError={(e) => {
                                                                 e.target.onerror = null;
-                                                                e.target.src = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg";
+                                                                e.target.src = FALLBACK_ICON;
                                                             }}
                                                         />
                                                         <div className="summoner-name" style={{ fontFamily: 'Cinzel', letterSpacing: '1px' }}>
@@ -467,7 +477,7 @@ function Leaderboard() {
                                 alt={`${activeUniDetail.uni_name} logo`}
                                 onError={(e) => {
                                     e.target.onerror = null;
-                                    e.target.src = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg";
+                                    e.target.src = FALLBACK_ICON;
                                 }}
                             />
                             <h3 className="uni-modal-title">{activeUniDetail.uni_name}</h3>
@@ -498,7 +508,7 @@ function Leaderboard() {
                                                         alt={match.championName}
                                                         onError={(e) => {
                                                             e.target.onerror = null;
-                                                            e.target.src = 'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg';
+                                                            e.target.src = FALLBACK_ICON;
                                                         }}
                                                     />
                                                     <div>

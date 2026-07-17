@@ -1,7 +1,10 @@
 import { useState } from "react"
 import PlayerCard from "./PlayerCard"
+import { useToast } from './Toast';
+import { FALLBACK_ICON } from './utils';
 
 function SearchPage() {
+    const [, showToast, ToastContainer] = useToast();
     // state 
     const [region, setRegion] = useState("na1")
     const [gameName, setGameName] = useState("") 
@@ -83,16 +86,13 @@ function SearchPage() {
         }
     }
 
-    const verifyClaim = async (bypass = false) => {
+    const verifyClaim = async () => {
         if (playerData == null || token == null) return;
         
         setError(null)
         setVerifyingClaim(true)
         try {
             const payload = { puuid: playerData.puuid }
-            if (bypass) {
-                payload.bypass_code = 'DEV_BYPASS'
-            }
 
             const response = await fetch('/api/claim_summoner/verify', {
                 method: 'POST',
@@ -105,7 +105,7 @@ function SearchPage() {
 
             const data = await response.json()
             if (response.ok) {
-                alert(data.message || 'Profile Claimed successfully!')
+                showToast(data.message || 'Profile Claimed successfully!', 'success')
                 setClaimCode(null)
                 setClaimIconUrl(null)
             } else {
@@ -120,6 +120,7 @@ function SearchPage() {
 
     return (
         <div>
+            <ToastContainer />
             <h2>Summoner Search</h2>
             <p>Look up any League of Legends summoner in the Americas region to fetch their current solo queue standing.</p>
             
@@ -223,18 +224,12 @@ function SearchPage() {
                             )}
                             
                             <div className="action-buttons-group" style={{ flexDirection: 'column', gap: '10px' }}>
-                                <button onClick={() => verifyClaim(false)} disabled={verifyingClaim} style={{ width: '100%' }}>
+                                <button onClick={() => verifyClaim()} disabled={verifyingClaim} style={{ width: '100%' }}>
                                     {verifyingClaim ? "Verifying icon..." : "Verify & Claim"}
                                 </button>
                                 <button onClick={() => { setClaimCode(null); setClaimIconUrl(null); }} disabled={verifyingClaim} style={{ width: '100%', border: '1px solid var(--text-main)', color: 'var(--text-main)', background: 'transparent' }}>
                                     Cancel
                                 </button>
-                                <span 
-                                    onClick={() => verifyClaim(true)} 
-                                    style={{ color: 'var(--text-main)', fontSize: '0.75rem', textDecoration: 'underline', cursor: 'pointer', marginTop: '5px' }}
-                                >
-                                    Bypass Verification (Developer Mode)
-                                </span>
                             </div>
                         </div>
                     )}

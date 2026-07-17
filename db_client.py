@@ -253,6 +253,16 @@ def claim_summoner_(user_id, puuid):
         cur.execute(query, (user_id, puuid))
         return True
 
+def get_summoner_owner(puuid):
+    """Return the user_id that currently owns the given summoner, or None."""
+    with get_db_connection() as con:
+        cur = con.cursor()
+        cur.execute("SELECT user_id FROM summoners WHERE puuid = %s", (puuid,))
+        row = cur.fetchone()
+        if row:
+            return row['user_id'] if isinstance(row, dict) else row[0]
+        return None
+
 def get_summoner_by_user(user_id):
     """This function is used to get the puuid of the summoner associated with a user_id. This is used in the profile page to display the summoner information of the user.
 

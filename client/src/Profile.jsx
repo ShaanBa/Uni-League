@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react"
 import PlayerCard from "./PlayerCard"
+import { useToast } from './Toast';
 
 function Profile() {
+    const [, showToast, ToastContainer] = useToast();
     const [playerData, setPlayerData] = useState(null)
     const [loading, setLoading] = useState(true)
     const [isVerified, setIsVerified] = useState(true)
@@ -74,7 +76,7 @@ function Profile() {
             const data = await response.json()
             
             if (response.ok) {
-                alert("Email verified successfully!")
+                showToast("Email verified successfully!", 'success')
                 setIsVerified(true)
                 fetchProfile()
             } else {
@@ -100,7 +102,7 @@ function Profile() {
             })
             
             if (response.ok) {
-                alert("Verification code resent! (For local dev: check Flask console stdout log)")
+                showToast("Verification code resent!", 'success')
             } else {
                 const data = await response.json()
                 setError(data.error || "Failed to resend code.")
@@ -125,7 +127,7 @@ function Profile() {
             })
             
             if (response.ok) {
-                alert('Stats Refreshed from Riot Games API!')
+                showToast('Stats Refreshed from Riot Games API!', 'success')
                 fetchProfile() 
             } else {
                 const data = await response.json()
@@ -150,13 +152,11 @@ function Profile() {
     if (!isVerified) {
         return (
             <div className="form-container" style={{ maxWidth: '460px' }}>
+                <ToastContainer />
                 <h2>Verify Student Status</h2>
                 <p style={{ fontSize: '0.85rem', marginBottom: '1.5rem', textAlign: 'center' }}>
                     We sent a 6-digit verification code to your student email. Enter it below to unlock your profile.
                 </p>
-                <div style={{ fontStyle: 'italic', fontSize: '0.75rem', color: 'var(--hextech-blue)', marginBottom: '1.5rem', background: 'rgba(0, 210, 241, 0.05)', padding: '8px', border: '1px solid rgba(0, 210, 241, 0.2)' }}>
-                    💡 <strong>Local Dev Note:</strong> Check the Flask terminal standard output for the generated OTP!
-                </div>
 
                 {error && <div className="error-message">{error}</div>}
 
@@ -196,6 +196,7 @@ function Profile() {
     // --- STANDARD PROFILE SCREEN ---
     return (
         <div>
+            <ToastContainer />
             <h2>My Profile</h2>
             <p>View your claimed summoner profile details and keep your standings up-to-date with Riot Games.</p>
             

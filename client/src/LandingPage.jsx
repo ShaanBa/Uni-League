@@ -6,6 +6,7 @@ function LandingPage() {
     const [topSchools, setTopSchools] = useState([]);
     const [stats, setStats] = useState({ players: 0, schools: 0 });
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -22,9 +23,11 @@ function LandingPage() {
                         players: playerData.length || 0,
                         schools: uniData.length || 0
                     });
+                } else {
+                    setError('Failed to load landing page data.');
                 }
             } catch (err) {
-                console.error("Failed to load landing data:", err);
+                setError('Could not connect to the server. Please try again later.');
             } finally {
                 setLoading(false);
             }
@@ -34,6 +37,8 @@ function LandingPage() {
 
     return (
         <div className="landing-container">
+
+            {error && <div className="error-message">{error}</div>}
 
             {/* ——— Hero ——— */}
             <section className="hero-section">

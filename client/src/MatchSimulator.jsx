@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './MatchSimulator.css';
+import { getRankColor, FALLBACK_ICON, championImgUrl } from './utils';
 
 function MatchSimulator() {
   const [universities, setUniversities] = useState([]);
@@ -119,15 +120,7 @@ function MatchSimulator() {
     }
   };
 
-  const getRankColor = (tier) => {
-    const colors = {
-      'IRON': '#514f4e', 'BRONZE': '#8c513a', 'SILVER': '#80989d',
-      'GOLD': '#cd8837', 'PLATINUM': '#4e9996', 'EMERALD': '#2a7c46',
-      'DIAMOND': '#576bce', 'MASTER': '#9d48e0', 'GRANDMASTER': '#d31a45',
-      'CHALLENGER': '#f4c874', 'UNRANKED': '#a0a6b1'
-    };
-    return colors[tier] || colors['UNRANKED'];
-  };
+
 
   return (
     <div className="sim-container">
@@ -203,9 +196,9 @@ function MatchSimulator() {
               <div className="team-meta">
                 <div className="team-logo-container">
                   <img 
-                    src={simulation.winner === universities.find(u => u.uni_id == uni1)?.uni_name ? simulation.winner_logo : simulation.loser_logo || "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg"} 
+                    src={simulation.winner === universities.find(u => u.uni_id == uni1)?.uni_name ? simulation.winner_logo : simulation.loser_logo || FALLBACK_ICON} 
                     alt="" 
-                    onError={(e) => e.target.src = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg"}
+                    onError={(e) => e.target.src = FALLBACK_ICON}
                     className="team-logo"
                   />
                 </div>
@@ -216,9 +209,9 @@ function MatchSimulator() {
                 {simulation.lineup1.map((p, idx) => (
                   <div key={`l1-${idx}`} className="roster-row">
                     <img 
-                      src={`https://ddragon.leagueoflegends.com/cdn/13.24.1/img/champion/${p.champion.replace(/\s+/g, '')}.png`}
+                      src={championImgUrl(p.champion)}
                       alt={p.champion}
-                      onError={(e) => e.target.src = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg"}
+                      onError={(e) => e.target.src = FALLBACK_ICON}
                       className="champ-avatar"
                     />
                     <div className="player-details">
@@ -238,9 +231,9 @@ function MatchSimulator() {
               <div className="team-meta">
                 <div className="team-logo-container">
                   <img 
-                    src={simulation.winner === universities.find(u => u.uni_id == uni2)?.uni_name ? simulation.winner_logo : simulation.loser_logo || "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg"} 
+                    src={simulation.winner === universities.find(u => u.uni_id == uni2)?.uni_name ? simulation.winner_logo : simulation.loser_logo || FALLBACK_ICON} 
                     alt="" 
-                    onError={(e) => e.target.src = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg"}
+                    onError={(e) => e.target.src = FALLBACK_ICON}
                     className="team-logo"
                   />
                 </div>
@@ -251,9 +244,9 @@ function MatchSimulator() {
                 {simulation.lineup2.map((p, idx) => (
                   <div key={`l2-${idx}`} className="roster-row">
                     <img 
-                      src={`https://ddragon.leagueoflegends.com/cdn/13.24.1/img/champion/${p.champion.replace(/\s+/g, '')}.png`}
+                      src={championImgUrl(p.champion)}
                       alt={p.champion}
-                      onError={(e) => e.target.src = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg"}
+                      onError={(e) => e.target.src = FALLBACK_ICON}
                       className="champ-avatar"
                     />
                     <div className="player-details">

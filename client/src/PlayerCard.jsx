@@ -1,26 +1,10 @@
-import React from 'react';
 import './PlayerCard.css';
+import { getRankColor, FALLBACK_ICON, DDRAGON_VERSION, championImgUrl } from './utils';
 
 function PlayerCard({ data }) {
   if (!data) return null;
 
-  // Helper to color-code the rank text
-  const getRankColor = (tier) => {
-    const colors = {
-      'IRON': '#514f4e',
-      'BRONZE': '#8c513a',
-      'SILVER': '#80989d',
-      'GOLD': '#cd8837',
-      'PLATINUM': '#4e9996',
-      'EMERALD': '#2a7c46',
-      'DIAMOND': '#576bce',
-      'MASTER': '#9d48e0',
-      'GRANDMASTER': '#d31a45',
-      'CHALLENGER': '#f4c874',
-      'UNRANKED': '#a0a6b1'
-    };
-    return colors[tier] || colors['UNRANKED'];
-  };
+
 
   // Helper to color-code KDA ratios
   const getKdaRatioColor = (ratio) => {
@@ -34,7 +18,7 @@ function PlayerCard({ data }) {
 
   const rankColor = getRankColor(data.rankTier);
   const iconId = data.profile_icon_id || 29;
-  const iconUrl = `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${iconId}.jpg`;
+  const iconUrl = iconId === 29 ? FALLBACK_ICON : `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${iconId}.jpg`;
 
   // CommunityDragon rank emblem mapping
   const tierNameLower = (data.rankTier || 'unranked').toLowerCase();
@@ -167,7 +151,7 @@ function PlayerCard({ data }) {
               const outcomeClass = match.win ? 'text-win' : 'text-loss';
               
               // Data Dragon champion face icon URL
-              const champImgUrl = `https://ddragon.leagueoflegends.com/cdn/13.24.1/img/champion/${match.championName}.png`;
+              const champImgUrl = championImgUrl(match.championName);
               
               // Calculate KDA metrics
               const kdaRatioVal = match.deaths === 0 ? 'Perfect' : ((match.kills + match.assists) / match.deaths).toFixed(2);
@@ -183,7 +167,7 @@ function PlayerCard({ data }) {
                       onError={(e) => {
                         e.target.onerror = null;
                         // Fallback generic icon
-                        e.target.src = 'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg';
+                        e.target.src = FALLBACK_ICON;
                       }}
                     />
                     <div>
