@@ -15,7 +15,7 @@ from db_client import (
     create_pending_claim, get_pending_claim, delete_pending_claim,
     get_university_leaderboard, get_university_details, get_university_summoners,
     get_db_connection, create_university_dynamically,
-    get_summoner_owner
+    get_summoner_owner, create_ticket, get_tickets, update_ticket_status
 )
 from auth_utils import validate_email, hash_password, check_password, validate_password_strength, send_verification_email
 from flask_cors import CORS
@@ -713,6 +713,69 @@ def simulate_match():
         "mvp": f"{mvp['game_name']} ({mvp['champion']})",
         "logs": logs
     })
+
+
+@app.route('/api/tickets', methods=['POST'])
+def post_ticket():
+    data = request.get_json() or {}
+    category = data.get('category')
+    title = data.get('title')
+    description = data.get('description')
+    contact_email = data.get('contact_email')
+    
+    if not category or not title or not description:
+        return jsonify({"error": "Category, title, and description are required."}), 400
+        
+    user_id = None
+    auth_header = request.headers.get('Authorization')
+    if auth_header and auth_header.startswith('Bearer '):
+        token = auth_header.split(" ")[1]
+        try:
+            token_data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+            user_id = token_data.get('user_id')
+        except Exception:
+            pass
+            
+    try:
+        ticket_id = create_ticket(user_id, category, title, description, contact_email)
+        return jsonify({"message": "Ticket submitted successfully!", "ticket_id": ticket_id}), 201
+    except Exception as e:
+        return jsonify({"error": "Failed to save ticket."}), 500
+
+
+@app.route('/api/admin/tickets', methods=['GET'])
+def list_tickets():
+    admin_secret = os.environ.get('ADMIN_SECRET', 'admin123')
+    incoming_secret = request.headers.get('X-Admin-Secret') or request.args.get('admin_secret')
+    
+    if not incoming_secret or incoming_secret != admin_secret:
+        return jsonify({"error": "Unauthorized. Invalid admin secret."}), 403
+        
+    try:
+        tickets = get_tickets()
+        return jsonify(tickets)
+    except Exception as e:
+        return jsonify({"error": "Failed to retrieve tickets."}), 500
+
+
+@app.route('/api/admin/tickets/<int:ticket_id>/status', methods=['POST'])
+def update_ticket(ticket_id):
+    admin_secret = os.environ.get('ADMIN_SECRET', 'admin123')
+    incoming_secret = request.headers.get('X-Admin-Secret') or request.args.get('admin_secret')
+    
+    if not incoming_secret or incoming_secret != admin_secret:
+        return jsonify({"error": "Unauthorized. Invalid admin secret."}), 403
+        
+    data = request.get_json() or {}
+    status = data.get('status')
+    if not status:
+        return jsonify({"error": "Status is required."}), 400
+        
+    try:
+        update_ticket_status(ticket_id, status)
+        return jsonify({"message": f"Ticket status updated to {status}."})
+    except Exception as e:
+        return jsonify({"error": "Failed to update ticket status."}), 500
 
 
 if __name__ == '__main__':

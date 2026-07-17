@@ -1,0 +1,90 @@
+/* ═══════════════════════════════════════════
+   Support & Feedback Styles (Hextech Deco)
+   ═══════════════════════════════════════════ */
+
+.support-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin: 0 auto;
+    padding: 1rem 0;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+/* --- Admin View Layout --- */
+.admin-tickets-view {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.tickets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+    width: 100%;
+    margin-top: 1.5rem;
+}
+
+.ticket-card {
+    background: #060b13;
+    padding: 1.5rem;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.25s ease;
+}
+
+.ticket-card h3 {
+    font-family: 'Cinzel', serif;
+    font-size: 1.05rem;
+    color: var(--text-light);
+    margin-bottom: 0.75rem;
+    letter-spacing: 0.5px;
+    text-align: left;
+}
+
+.ticket-description {
+    font-size: 0.88rem;
+    color: var(--text-main);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    white-space: pre-wrap;
+    text-align: left;
+    flex: 1;
+}
+
+.ticket-badge {
+    font-family: monospace;
+    font-size: 0.65rem;
+    font-weight: bold;
+    padding: 3px 10px;
+    border: 1px solid transparent;
+    letter-spacing: 1px;
+    color: #fff;
+}
+
+.ticket-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    color: var(--text-main);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 0.85rem;
+    margin-top: auto;
+}
+
+.ticket-footer button {
+    border: 1px solid var(--gold-primary);
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    transition: all 0.2s ease;
+}
+
+.ticket-footer button:hover {
+    box-shadow: 0 0 8px rgba(200, 170, 110, 0.3);
+}

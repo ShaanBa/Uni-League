@@ -369,6 +369,46 @@ def init_db():
                 PRIMARY KEY (user_id, puuid)
             )
         """)
+        
+        # Create tickets table for bug reports, missing universities, and feedback
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS tickets (
+                ticket_id SERIAL PRIMARY KEY,
+                user_id INTEGER REFERENCES users(user_id) ON DELETE SET NULL,
+                category VARCHAR(32) NOT NULL,
+                title VARCHAR(255) NOT NULL,
+                description TEXT NOT NULL,
+                contact_email VARCHAR(255),
+                status VARCHAR(32) DEFAULT 'OPEN',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+def create_ticket(user_id, category, title, description, contact_email):
+    """Inserts a new support or feedback ticket."""
+    with get_db_connection() as con:
+        cur = con.cursor()
+        query = """
+            INSERT INTO tickets (user_id, category, title, description, contact_email)
+            VALUES (%s, %s, %s, %s, %s)
+            RETURNING ticket_id
+        """
+        cur.execute(query, (user_id, category, title, description, contact_email))
+        return cur.fetchone()[0]
+
+def get_tickets():
+    """Retrieve all feedback/support tickets sorted by submission time."""
+    with get_db_connection() as con:
+        cur = con.cursor(cursor_factory=RealDictCursor)
+        cur.execute("SELECT * FROM tickets ORDER BY created_at DESC")
+        return cur.fetchall()
+
+def update_ticket_status(ticket_id, status):
+    """Updates status of a support ticket (e.g. CLOSED, RESOLVED)."""
+    with get_db_connection() as con:
+        cur = con.cursor()
+        cur.execute("UPDATE tickets SET status = %s WHERE ticket_id = %s", (status, ticket_id))
+        return True
 
 def set_user_verification_code(user_id, code, expires_at, con=None):
     with db_session(con) as session_con:

@@ -28,3 +28,14 @@ CREATE TABLE summoners (
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_uni_id ON users(uni_id);
+
+CREATE TABLE tickets (
+    ticket_id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(user_id) ON DELETE SET NULL,
+    category VARCHAR(32) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    contact_email VARCHAR(255),
+    status VARCHAR(32) DEFAULT 'OPEN',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
