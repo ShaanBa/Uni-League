@@ -217,16 +217,14 @@ function Leaderboard() {
                                             
                                             <td>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                    {uni.uni_logo_link ? (
-                                                        <img 
-                                                            src={uni.uni_logo_link} 
-                                                            alt="" 
-                                                            style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border-gold)' }}
-                                                            onError={(e) => {
-                                                                e.target.style.display = 'none';
-                                                            }}
-                                                        />
-                                                    ) : null}
+                                                    <img 
+                                                        src={uni.uni_logo_link || `https://logo.clearbit.com/${uni.uni_domain}`} 
+                                                        alt="" 
+                                                        style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border-gold)' }}
+                                                        onError={(e) => {
+                                                            e.target.src = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg";
+                                                        }}
+                                                    />
                                                     <div className="summoner-name" style={{ fontFamily: 'Cinzel', letterSpacing: '1px' }}>
                                                         {uni.uni_name}
                                                     </div>
@@ -260,7 +258,7 @@ function Leaderboard() {
                     )}
                 </div>
             )}
-
+            
             {/* --- University Details Modal Overlay --- */}
             {activeUniDetail && (
                 <div className="modal-overlay" onClick={() => setActiveUniDetail(null)}>
@@ -270,7 +268,7 @@ function Leaderboard() {
                         <div className="uni-modal-header">
                             <img 
                                 className="uni-modal-logo" 
-                                src={activeUniDetail.uni_logo_link || "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg"} 
+                                src={activeUniDetail.uni_logo_link || `https://logo.clearbit.com/${activeUniDetail.uni_domain}`} 
                                 alt={`${activeUniDetail.uni_name} logo`}
                                 onError={(e) => {
                                     e.target.src = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/29.jpg";
