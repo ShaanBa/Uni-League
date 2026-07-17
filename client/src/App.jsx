@@ -5,6 +5,7 @@ import Leaderboard from './Leaderboard'
 import SearchPage from './SearchPage'
 import Login from './Login'
 import Profile from './Profile'
+import LandingPage from './LandingPage'
 
 function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -26,7 +27,12 @@ function App() {
         <Router>
             <div className="app-container">
                 <nav>
-                    <Link to="/"><button>Search</button></Link>
+                    <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+                        <span className="brand-logo" style={{ fontFamily: 'Cinzel', fontWeight: '900', fontSize: '1.25rem', color: 'var(--gold-primary)', letterSpacing: '2px', textShadow: '0 0 10px rgba(200, 170, 110, 0.3)', marginRight: '1.5rem', cursor: 'pointer' }}>
+                            UNI LEAGUE
+                        </span>
+                    </Link>
+                    <Link to="/search"><button>Search</button></Link>
                     <Link to="/leaderboard"><button>Leaderboard</button></Link>
                     
                     {!isLoggedIn ? (
@@ -45,7 +51,8 @@ function App() {
                 {/* Wrapping our routes in this main-content div applies the central panel styling */}
                 <main className="main-content">
                     <Routes>
-                        <Route path="/" element={<SearchPage />} />
+                        <Route path="/" element={<LandingPage />} />
+                        <Route path="/search" element={<SearchPage />} />
                         <Route path="/leaderboard" element={<Leaderboard />} />
                         <Route path="/register" element={<Register />} />
                         <Route path="/login" element={
