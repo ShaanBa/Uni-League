@@ -472,3 +472,37 @@ def get_university_summoners(uni_id):
         """
         cur.execute(query, (uni_id,))
         return cur.fetchall()
+
+def create_university_dynamically(domain, con=None):
+    '''
+    Dynamically creates a university entry based on a new domain.
+    '''
+    name_part = domain.split('.')[0]
+    if len(name_part) <= 3:
+        formatted_name = name_part.upper()
+    else:
+        formatted_name = name_part.capitalize()
+        
+    uni_name = f"{formatted_name} University"
+    logo_link = f"https://www.google.com/s2/favicons?domain={domain}&sz=128"
+    
+    with db_session(con) as session_con:
+        cur = session_con.cursor()
+        try:
+            query = """
+                INSERT INTO universities (uni_name, uni_domain, uni_logo_link)
+                VALUES (%s, %s, %s)
+                ON CONFLICT (uni_domain) DO UPDATE SET uni_name = EXCLUDED.uni_name
+                RETURNING uni_id
+            """
+            cur.execute(query, (uni_name, domain, logo_link))
+            row = cur.fetchone()
+            if row:
+                if isinstance(row, dict):
+                    return row.get('uni_id')
+                elif isinstance(row, (tuple, list)):
+                    return row[0]
+            return None
+        except Exception as e:
+            print(f"Error creating university dynamically: {e}")
+            return None

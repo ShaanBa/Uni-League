@@ -14,7 +14,7 @@ from db_client import (
     set_user_verification_code, get_user_verification, verify_user_email,
     create_pending_claim, get_pending_claim, delete_pending_claim,
     get_university_leaderboard, get_university_details, get_university_summoners,
-    get_db_connection
+    get_db_connection, create_university_dynamically
 )
 from auth_utils import validate_email, hash_password, check_password, validate_password_strength, send_verification_email
 from flask_cors import CORS
@@ -159,9 +159,11 @@ def register_user():
                 
             uni_id = get_university_id(extracted_domain, con=con) #get the uni id by looking up domain in db
             if not uni_id:
-                return jsonify({
-                    "error": f"The domain '{extracted_domain}' is not registered in our collegiate system. Please register with your student email."
-                }), 400
+                uni_id = create_university_dynamically(extracted_domain, con=con)
+                if not uni_id:
+                    return jsonify({
+                        "error": f"The domain '{extracted_domain}' is not registered and could not be created in our collegiate system. Please contact admin."
+                    }), 400
                 
             hashed_pass = hash_password(password) 
             user_id = create_user(email, hashed_pass, uni_id, con=con)
