@@ -123,32 +123,32 @@ function PlayerCard({ data }) {
             <div className="achievements-badges-grid">
               {isCarryMachine && (
                 <span className="badge-chip carry-machine" title="Holds a 55%+ winrate over 5+ games">
-                  🔥 Carry Machine
+                  [ CARRY MACHINE ]
                 </span>
               )}
               {isKdaDaemon && (
                 <span className="badge-chip kda-daemon" title={`Outstanding recent KDA score: ${avgKda}`}>
-                  ⚡ KDA Daemon
+                  [ KDA DAEMON ]
                 </span>
               )}
               {isUnstoppable && (
                 <span className="badge-chip unstoppable" title="On a 3+ game win streak in recent matches">
-                  🏆 Unstoppable
+                  [ UNSTOPPABLE ]
                 </span>
               )}
               {isFarmerSpecialist && (
                 <span className="badge-chip farmer" title={`Maintains an average CS per minute of ${avgCsMin}`}>
-                  🌾 CS Specialist
+                  [ CS SPECIALIST ]
                 </span>
               )}
               {isCollegiateIcon && (
                 <span className="badge-chip apex-competitor" title="Reached Apex Tiers (Master, Grandmaster, Challenger)">
-                  👑 Apex Legend
+                  [ APEX LEGEND ]
                 </span>
               )}
               {!isCarryMachine && !isKdaDaemon && !isUnstoppable && !isFarmerSpecialist && !isCollegiateIcon && (
                 <span className="badge-chip challenger-in-training" title="Play matches to unlock specialized badges">
-                  🔰 Scholar Scout
+                  [ SCHOLAR RECRUIT ]
                 </span>
               )}
             </div>

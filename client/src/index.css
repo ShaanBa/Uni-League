@@ -128,7 +128,7 @@ nav::after {
 
 /* --- Premium Buttons --- */
 button {
-    background: linear-gradient(135deg, #121c2c 0%, #060b13 100%);
+    background: #060b13;
     border: 1px solid var(--gold-primary);
     color: var(--gold-primary);
     font-family: 'Cinzel', serif;
@@ -138,41 +138,20 @@ button {
     cursor: pointer;
     text-transform: uppercase;
     letter-spacing: 2px;
-    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
     position: relative;
-    overflow: hidden;
-    z-index: 1;
-    border-radius: 4px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-}
-
-button::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-dark) 100%);
-    z-index: -1;
-    opacity: 0;
-    transition: opacity 0.4s ease;
+    border-radius: 0;
 }
 
 button:hover {
-    color: var(--bg-dark);
+    color: #fff;
+    background-color: var(--gold-dark);
     border-color: var(--gold-bright);
-    box-shadow: 0 0 20px rgba(200, 170, 110, 0.5);
-    transform: translateY(-2px);
-}
-
-button:hover::before {
-    opacity: 1;
 }
 
 button:active {
-    transform: translateY(1px);
-    box-shadow: 0 2px 6px rgba(200, 170, 110, 0.3);
+    background-color: var(--gold-primary);
+    color: #060b13;
 }
 
 /* Navigation Specific Buttons */
@@ -183,41 +162,18 @@ nav button {
     letter-spacing: 2px;
     padding: 0.5rem 1.2rem;
     border-radius: 0;
-    box-shadow: none;
-}
-
-nav button::before {
-    display: none;
+    transition: color 0.2s ease;
 }
 
 nav button:hover {
     color: var(--gold-bright);
     border-color: transparent;
-    box-shadow: none;
-    text-shadow: 0 0 8px rgba(240, 230, 210, 0.5);
     transform: none;
 }
 
 nav a {
     text-decoration: none;
     position: relative;
-}
-
-nav a::after {
-    content: '';
-    position: absolute;
-    bottom: -6px;
-    left: 50%;
-    width: 0;
-    height: 2px;
-    background-color: var(--gold-primary);
-    transition: all 0.3s ease;
-    transform: translateX(-50%);
-    box-shadow: 0 0 8px var(--gold-primary);
-}
-
-nav a:hover::after {
-    width: 60%;
 }
 
 /* --- Premium Form Styling --- */

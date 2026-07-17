@@ -6,62 +6,60 @@
     align-items: center;
     gap: 16px;
     border: 1px solid var(--border-gold);
-    background: radial-gradient(circle at top, rgba(20, 32, 50, 0.9) 0%, rgba(5, 8, 15, 0.95) 100%);
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7), inset 0 0 25px rgba(200, 170, 110, 0.05);
+    background: #060b13;
     padding: 30px;
-    border-radius: 4px;
+    border-radius: 0;
     color: var(--text-light);
     position: relative;
-    transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    transition: border-color 0.25s ease, background-color 0.25s ease;
     animation: fadeInUp 0.5s ease-out;
 }
 
 .player-card::before {
     content: '';
     position: absolute;
-    top: 5px;
-    left: 5px;
-    right: 5px;
-    bottom: 5px;
-    border: 1px solid rgba(200, 170, 110, 0.15);
+    top: 4px;
+    left: 4px;
+    right: 4px;
+    bottom: 4px;
+    border: 1px solid rgba(200, 170, 110, 0.08);
     pointer-events: none;
 }
 
 .player-card:hover {
-    transform: translateY(-4px) scale(1.01);
-    box-shadow: 0 20px 45px rgba(0, 210, 241, 0.15), 0 0 0 1px var(--hextech-blue);
-    border-color: var(--hextech-blue);
+    border-color: var(--gold-primary);
+    background: #09101a;
 }
 
 /* Avatar Hextech Frame */
 .profile-icon-container {
     position: relative;
-    width: 100px;
-    height: 100px;
+    width: 96px;
+    height: 96px;
     margin-bottom: 8px;
+    background: #02060c;
+    padding: 4px;
+    border: 1px solid var(--border-gold);
 }
 
 .profile-icon {
-    width: 100px;
-    height: 100px;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
-    border-radius: 50%;
-    border: 2px solid var(--gold-primary);
-    box-shadow: 0 0 15px rgba(200, 170, 110, 0.3);
-    transition: all 0.3s ease;
+    border-radius: 0;
+    border: 1px solid rgba(200, 170, 110, 0.15);
+    transition: border-color 0.25s ease;
 }
 
 .player-card:hover .profile-icon {
-    border-color: var(--hextech-blue);
-    box-shadow: 0 0 20px rgba(0, 210, 241, 0.6);
+    border-color: var(--gold-primary);
 }
 
 .player-name-row {
-    font-size: 1.6rem;
+    font-size: 1.5rem;
     font-weight: 700;
     letter-spacing: 1px;
     color: var(--text-light);
-    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
     display: flex;
     align-items: center;
     gap: 4px;
@@ -71,7 +69,7 @@
     color: var(--gold-primary);
     font-family: 'Cinzel', serif;
     font-weight: 500;
-    font-size: 1rem;
+    font-size: 0.95rem;
 }
 
 .rank-row-container {
@@ -83,19 +81,17 @@
 }
 
 .rank-emblem-badge {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     object-fit: contain;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
 }
 
 .rank-line {
     font-family: 'Cinzel', serif;
-    font-size: 1.15rem;
+    font-size: 1.05rem;
     font-weight: 700;
     letter-spacing: 2px;
     text-transform: uppercase;
-    text-shadow: 0 0 10px rgba(0,0,0,0.5);
 }
 
 /* Stats Layout */
@@ -108,41 +104,25 @@
 }
 
 .stat-box {
-    background: rgba(2, 6, 12, 0.7);
+    background: #080d14;
     border: 1px solid var(--border-blue);
-    border-radius: 4px;
+    border-radius: 0;
     padding: 12px 8px;
     text-align: center;
-    transition: all 0.3s ease;
+    transition: all 0.25s ease;
     position: relative;
     overflow: hidden;
 }
 
-.stat-box::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background-color: var(--border-blue);
-    transition: all 0.3s ease;
-}
-
 .stat-box:hover {
-    background: rgba(2, 6, 12, 0.95);
-    border-color: rgba(200, 170, 110, 0.2);
-}
-
-.stat-box:hover::after {
-    background-color: var(--gold-primary);
-    box-shadow: 0 0 8px var(--gold-primary);
+    background: #0d1420;
+    border-color: rgba(200, 170, 110, 0.25);
 }
 
 .stat-label {
     display: block;
     color: var(--text-main);
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     text-transform: uppercase;
     letter-spacing: 1px;
     font-weight: 500;
@@ -152,18 +132,18 @@
     display: block;
     margin-top: 6px;
     font-weight: 700;
-    font-size: 1.05rem;
+    font-size: 0.95rem;
     color: var(--text-light);
     font-family: 'Outfit', sans-serif;
 }
 
 /* Specific Winrate Coloring */
 .high-winrate {
-    color: #4cd137 !important;
+    color: #2ecc71 !important;
 }
 
 .low-winrate {
-    color: #e84118 !important;
+    color: #e74c3c !important;
 }
 
 /* Recent Matches Sections */
@@ -277,75 +257,46 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 8px;
+    gap: 12px;
 }
 
 .badge-chip {
+    font-family: monospace;
     font-size: 0.72rem;
     font-weight: 700;
-    padding: 4px 10px;
-    border-radius: 20px;
+    letter-spacing: 1px;
+    padding: 2px 6px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
     display: inline-flex;
     align-items: center;
     cursor: help;
-    transition: all 0.25s ease;
-    border: 1px solid transparent;
+    transition: color 0.25s ease;
 }
 
 .badge-chip:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    color: #fff;
 }
 
 .carry-machine {
-    background: rgba(255, 77, 109, 0.08);
     color: #ff4d6d;
-    border-color: rgba(255, 77, 109, 0.25);
-}
-.carry-machine:hover {
-    box-shadow: 0 0 10px rgba(255, 77, 109, 0.3);
 }
 
 .kda-daemon {
-    background: rgba(0, 210, 241, 0.08);
     color: var(--hextech-blue);
-    border-color: rgba(0, 210, 241, 0.25);
-}
-.kda-daemon:hover {
-    box-shadow: 0 0 10px rgba(0, 210, 241, 0.35);
 }
 
 .unstoppable {
-    background: rgba(200, 170, 110, 0.1);
     color: var(--gold-primary);
-    border-color: rgba(200, 170, 110, 0.3);
-}
-.unstoppable:hover {
-    box-shadow: 0 0 10px rgba(200, 170, 110, 0.35);
 }
 
 .farmer {
-    background: rgba(46, 213, 115, 0.08);
     color: #2ed573;
-    border-color: rgba(46, 213, 115, 0.2);
-}
-.farmer:hover {
-    box-shadow: 0 0 10px rgba(46, 213, 115, 0.3);
 }
 
 .apex-competitor {
-    background: rgba(157, 72, 224, 0.08);
     color: #c77dff;
-    border-color: rgba(157, 72, 224, 0.25);
-}
-.apex-competitor:hover {
-    box-shadow: 0 0 10px rgba(157, 72, 224, 0.35);
 }
 
 .challenger-in-training {
-    background: rgba(160, 166, 177, 0.06);
     color: var(--text-main);
-    border-color: rgba(160, 166, 177, 0.15);
 }

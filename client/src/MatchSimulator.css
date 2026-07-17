@@ -24,8 +24,7 @@
   background: var(--bg-panel);
   border: 1px solid var(--border-gold);
   padding: 2rem;
-  border-radius: 6px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  border-radius: 0;
   backdrop-filter: blur(10px);
 }
 
@@ -51,7 +50,6 @@
   font-size: 2rem;
   font-weight: 900;
   color: var(--gold-primary);
-  text-shadow: 0 0 10px rgba(200, 170, 110, 0.4);
   padding: 0 1rem;
 }
 
@@ -64,10 +62,10 @@
 .spinner {
   width: 50px;
   height: 50px;
-  border: 3px solid rgba(0, 210, 241, 0.1);
-  border-top-color: var(--hextech-blue);
+  border: 2px solid rgba(200, 170, 110, 0.15);
+  border-top-color: var(--gold-primary);
   border-radius: 50%;
-  animation: spin 1s linear infinite, pulseBlue 2s infinite;
+  animation: spin 1s linear infinite;
   margin: 0 auto 1.5rem;
 }
 
@@ -98,17 +96,14 @@
 
 .sim-team-panel {
   background: var(--bg-card);
-  border-radius: 6px;
+  border-radius: 0;
   padding: 1.5rem;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-  backdrop-filter: blur(5px);
   position: relative;
-  transition: all 0.3s ease;
 }
 
 .blue-side {
-  border: 1px solid rgba(0, 210, 241, 0.3);
-  box-shadow: 0 0 15px rgba(0, 210, 241, 0.05);
+  border: 1px solid var(--border-blue);
+  border-top: 3px solid var(--hextech-blue);
 }
 
 .blue-side::before {
@@ -123,8 +118,8 @@
 }
 
 .red-side {
-  border: 1px solid rgba(211, 26, 69, 0.3);
-  box-shadow: 0 0 15px rgba(211, 26, 69, 0.05);
+  border: 1px solid var(--border-blue);
+  border-top: 3px solid var(--danger);
 }
 
 .red-side::before {
@@ -151,9 +146,9 @@
 .team-logo {
   width: 60px;
   height: 60px;
-  border-radius: 50%;
+  border-radius: 0;
   object-fit: cover;
-  border: 2px solid var(--border-gold);
+  border: 1px solid var(--border-gold);
   margin-bottom: 0.75rem;
 }
 
@@ -180,20 +175,21 @@
   align-items: center;
   gap: 12px;
   padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.01);
+  border-radius: 0;
   border: 1px solid rgba(255,255,255,0.03);
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .roster-row:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(200, 170, 110, 0.03);
+  border-color: rgba(200, 170, 110, 0.15);
 }
 
 .champ-avatar {
   width: 36px;
   height: 36px;
-  border-radius: 4px;
+  border-radius: 0;
   border: 1px solid var(--border-blue);
   object-fit: cover;
 }
@@ -223,11 +219,10 @@
 
 /* Play-by-play ticker logs */
 .sim-logs-container {
-  background: rgba(1, 8, 17, 0.9);
+  background: #04080f;
   border: 1px solid var(--border-gold);
-  border-radius: 6px;
+  border-radius: 0;
   padding: 1.5rem;
-  box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
 }
 
 .logs-header {
@@ -247,18 +242,18 @@
 
 .skip-btn {
   background: transparent;
-  border: 1px solid var(--hextech-blue);
-  color: var(--hextech-blue);
-  font-size: 0.75rem;
+  border: 1px solid var(--gold-primary);
+  color: var(--gold-primary);
+  font-size: 0.72rem;
   padding: 4px 10px;
-  border-radius: 3px;
+  border-radius: 0;
+  font-family: monospace;
 }
 
 .skip-btn:hover {
-  background: rgba(0, 210, 241, 0.1);
+  background: rgba(200, 170, 110, 0.05);
   color: #fff;
   border-color: #fff;
-  box-shadow: 0 0 10px rgba(0, 210, 241, 0.3);
 }
 
 .logs-scroller {
@@ -272,23 +267,22 @@
 
 /* Scrollbar */
 .logs-scroller::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 .logs-scroller::-webkit-scrollbar-track {
   background: rgba(0,0,0,0.3);
 }
 .logs-scroller::-webkit-scrollbar-thumb {
   background: var(--border-gold);
-  border-radius: 3px;
 }
 
 .log-entry {
   display: flex;
   gap: 12px;
   padding: 8px 12px;
-  border-radius: 4px;
+  border-radius: 0;
   animation: fadeInUp 0.3s ease-out;
-  border-left: 3px solid transparent;
+  border-left: 2px solid transparent;
 }
 
 .log-time {
@@ -314,7 +308,7 @@
 
 /* Log variants styling */
 .log-kill {
-  background: rgba(211, 26, 69, 0.05);
+  background: rgba(211, 26, 69, 0.03);
   border-left-color: var(--danger);
 }
 .log-kill strong {
@@ -322,7 +316,7 @@
 }
 
 .log-fight {
-  background: rgba(157, 72, 224, 0.05);
+  background: rgba(157, 72, 224, 0.03);
   border-left-color: var(--hextech-purple);
 }
 .log-fight strong {
@@ -330,7 +324,7 @@
 }
 
 .log-objective {
-  background: rgba(0, 210, 241, 0.05);
+  background: rgba(0, 210, 241, 0.03);
   border-left-color: var(--hextech-blue);
 }
 .log-objective strong {
@@ -338,7 +332,7 @@
 }
 
 .log-steal {
-  background: rgba(200, 170, 110, 0.08);
+  background: rgba(200, 170, 110, 0.04);
   border-left-color: #ffd166;
 }
 .log-steal strong {
@@ -346,7 +340,7 @@
 }
 
 .log-victory {
-  background: rgba(200, 170, 110, 0.12);
+  background: rgba(200, 170, 110, 0.06);
   border-left-color: var(--gold-primary);
 }
 .log-victory strong {
@@ -364,7 +358,7 @@
 .log-typing .dot {
   width: 6px;
   height: 6px;
-  background-color: var(--hextech-blue);
+  background-color: var(--gold-primary);
   border-radius: 50%;
   animation: typingDot 1s infinite alternate;
 }
@@ -379,14 +373,12 @@
 
 /* Victory celebration */
 .victory-banner {
-  background: linear-gradient(180deg, rgba(16, 26, 42, 0.9) 0%, rgba(3, 8, 15, 0.95) 100%);
+  background: #05090f;
   border: 1px solid var(--gold-primary);
-  border-radius: 6px;
+  border-radius: 0;
   padding: 3rem 2rem;
   text-align: center;
   position: relative;
-  box-shadow: 0 0 40px rgba(200, 170, 110, 0.25);
-  overflow: hidden;
 }
 
 .victory-banner::before {
@@ -402,23 +394,14 @@
 .victory-trophy {
   font-size: 3.5rem;
   margin-bottom: 1rem;
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
 }
 
 .victory-banner h2 {
   font-size: 2.2rem;
   letter-spacing: 6px;
-  background: linear-gradient(to right, var(--gold-bright), var(--gold-primary));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--gold-primary);
   margin-bottom: 0.5rem;
   font-weight: 900;
-  text-shadow: 0 0 15px rgba(200, 170, 110, 0.4);
 }
 
 .victory-banner h3 {
@@ -436,8 +419,7 @@
   background: rgba(200, 170, 110, 0.05);
   border: 1px solid rgba(200, 170, 110, 0.2);
   padding: 10px 25px;
-  border-radius: 4px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  border-radius: 0;
 }
 
 .mvp-badge {
@@ -453,5 +435,4 @@
   font-weight: bold;
   color: #fff;
   margin-top: 2px;
-  text-shadow: 0 0 5px rgba(255,255,255,0.2);
 }

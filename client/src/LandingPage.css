@@ -6,7 +6,7 @@
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem 1rem;
-    animation: fadeInUp 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+    animation: fadeInUp 0.6s ease-out;
 }
 
 /* --- Hero Section --- */
@@ -46,37 +46,34 @@
     border: 1px solid var(--gold-primary);
     cursor: pointer;
     position: relative;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    border-radius: 2px;
+    transition: all 0.25s ease;
+    border-radius: 0;
     outline: none;
     text-decoration: none;
 }
 
 .hextech-btn-gold {
-    background: linear-gradient(135deg, var(--gold-dark) 0%, var(--gold-primary) 50%, var(--gold-dark) 100%);
-    color: #010a13;
-    box-shadow: 0 4px 15px rgba(200, 170, 110, 0.2), inset 0 0 10px rgba(255, 255, 255, 0.2);
-    text-shadow: 0 1px 2px rgba(255,255,255,0.4);
+    background: #785a28;
+    color: #fff;
+    border-color: var(--gold-primary);
 }
 
 .hextech-btn-gold:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(200, 170, 110, 0.4), 0 0 15px var(--gold-bright);
+    background: var(--gold-primary);
+    color: #010a13;
     border-color: var(--gold-bright);
 }
 
 .hextech-btn-blue {
-    background: rgba(2, 6, 12, 0.8);
+    background: #060b13;
     color: var(--hextech-blue);
     border-color: var(--border-blue);
-    box-shadow: 0 4px 15px rgba(0, 210, 241, 0.1);
 }
 
 .hextech-btn-blue:hover {
-    transform: translateY(-2px);
     border-color: var(--hextech-blue);
-    box-shadow: 0 6px 20px rgba(0, 210, 241, 0.3), 0 0 10px var(--hextech-blue-glow);
-    color: var(--text-light);
+    background: rgba(0, 210, 241, 0.05);
+    color: #fff;
 }
 
 /* --- Features Grid --- */
@@ -113,42 +110,24 @@
 }
 
 .feature-card {
-    background: rgba(10, 16, 26, 0.6);
+    background: #060b13;
     border: 1px solid var(--border-blue);
     padding: 2.5rem 2rem;
     position: relative;
-    border-radius: 4px;
-    transition: all 0.3s ease;
+    border-radius: 0;
+    transition: border-color 0.25s ease, background-color 0.25s ease;
     overflow: hidden;
 }
 
-.feature-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 4px;
-    height: 100%;
-    background: transparent;
-    transition: all 0.3s ease;
-}
-
 .feature-card:hover {
-    border-color: var(--border-gold);
-    background: rgba(10, 16, 26, 0.95);
-    transform: translateY(-3px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-}
-
-.feature-card:hover::before {
-    background: var(--gold-primary);
+    border-color: var(--gold-primary);
+    background: #09101a;
 }
 
 .feature-icon-wrapper {
     font-size: 2.2rem;
     color: var(--gold-primary);
     margin-bottom: 1.5rem;
-    text-shadow: 0 0 10px rgba(200, 170, 110, 0.3);
 }
 
 .feature-card h3 {
@@ -185,24 +164,24 @@
 .podium-column {
     flex: 1;
     min-width: 250px;
-    background: rgba(10, 16, 26, 0.8);
+    background: #060b13;
     border: 1px solid var(--border-blue);
-    border-radius: 4px;
+    border-radius: 0;
     padding: 2rem 1.5rem;
     position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
-    transition: all 0.3s ease;
+    transition: border-color 0.25s ease;
 }
 
 .podium-column::before {
     content: '';
     position: absolute;
-    top: 5px;
-    left: 5px;
-    right: 5px;
-    bottom: 5px;
+    top: 4px;
+    left: 4px;
+    right: 4px;
+    bottom: 4px;
     border: 1px solid rgba(200, 170, 110, 0.05);
     pointer-events: none;
 }
@@ -210,20 +189,22 @@
 /* Order adjustments for 2nd, 1st, 3rd podium look */
 .podium-1st {
     order: 2;
-    padding: 3rem 2rem;
-    border-color: var(--gold-primary);
-    box-shadow: 0 10px 30px rgba(200, 170, 110, 0.15);
-    transform: translateY(-15px);
+    padding: 3.5rem 2rem;
+    border-color: var(--border-gold);
 }
+
+.podium-1st:hover {
+    border-color: var(--gold-primary);
+}
+
 .podium-2nd {
     order: 1;
     border-color: #80989d;
-    box-shadow: 0 8px 25px rgba(128, 152, 157, 0.08);
 }
+
 .podium-3rd {
     order: 3;
     border-color: #a05a2c;
-    box-shadow: 0 8px 25px rgba(160, 90, 44, 0.08);
 }
 
 /* Fallback order for mobile stack */
@@ -235,55 +216,52 @@
     }
     .podium-1st, .podium-2nd, .podium-3rd {
         order: unset;
-        transform: none;
         width: 100%;
         max-width: 400px;
     }
 }
 
 .podium-badge {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    border-radius: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: 'Cinzel', serif;
     font-weight: 900;
-    font-size: 1.3rem;
-    color: #010a13;
+    font-size: 1.1rem;
+    color: #fff;
     margin-bottom: 1.5rem;
-    box-shadow: 0 0 15px rgba(255,255,255,0.1);
+    border: 1px solid transparent;
 }
 
 .podium-1st .podium-badge {
-    background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold-primary) 100%);
-    box-shadow: 0 0 15px rgba(200, 170, 110, 0.5);
+    background: #785a28;
+    border-color: var(--gold-primary);
 }
 
 .podium-2nd .podium-badge {
-    background: linear-gradient(135deg, #e0e5eb 0%, #80989d 100%);
-    box-shadow: 0 0 15px rgba(128, 152, 157, 0.3);
+    background: #2c3e50;
+    border-color: #7f8c8d;
 }
 
 .podium-3rd .podium-badge {
-    background: linear-gradient(135deg, #d38450 0%, #a05a2c 100%);
-    box-shadow: 0 0 15px rgba(160, 90, 44, 0.3);
+    background: #5c3a21;
+    border-color: #cd7f32;
 }
 
 .podium-logo {
     width: 64px;
     height: 64px;
-    border-radius: 50%;
+    border-radius: 0;
     object-fit: cover;
     margin-bottom: 1rem;
-    border: 1.5px solid var(--border-blue);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    border: 1px solid var(--border-blue);
 }
 
 .podium-1st .podium-logo {
     border-color: var(--gold-primary);
-    box-shadow: 0 5px 20px rgba(200, 170, 110, 0.3);
 }
 
 .podium-school-name {
