@@ -1,5 +1,6 @@
 .player-card {
-    max-width: 440px;
+    width: 100%;
+    max-width: 100%;
     margin: 2rem auto;
     display: flex;
     flex-direction: column;
@@ -300,4 +301,159 @@
 
 .challenger-in-training {
     color: var(--text-main);
+}
+
+/* --- Split Layout Additions --- */
+.player-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    border-bottom: 1px solid rgba(200, 170, 110, 0.15);
+    padding-bottom: 20px;
+}
+
+.player-identity-section {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.player-meta-info {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.badge-region-tag {
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    background: rgba(0, 210, 241, 0.1);
+    border: 1px solid rgba(0, 210, 241, 0.2);
+    color: var(--hextech-blue);
+    border-radius: 2px;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.badge-lane-tag {
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    background: rgba(226, 177, 60, 0.1);
+    border: 1px solid rgba(226, 177, 60, 0.2);
+    color: var(--gold-primary);
+    border-radius: 2px;
+    text-transform: uppercase;
+    font-weight: bold;
+    margin-left: 6px;
+}
+
+.player-rank-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.player-card-body {
+    display: flex;
+    gap: 30px;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.player-card-left-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 300px;
+    text-align: left;
+}
+
+.player-card-right-col {
+    flex: 2.2;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.player-socials-box-new {
+    width: 100%;
+    padding: 15px;
+    border: 1px solid rgba(255,255,255,0.05);
+    background: rgba(2,6,12,0.4);
+    border-radius: 2px;
+}
+
+.player-bio-text {
+    margin: 0 0 12px 0;
+    font-size: 0.85rem;
+    color: var(--text-light);
+    font-style: italic;
+    word-break: break-word;
+    line-height: 1.5;
+}
+
+.socials-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 0.8rem;
+}
+
+.social-item {
+    color: var(--text-main);
+}
+
+.achievements-section-new {
+    width: 100%;
+}
+
+.section-title-sub {
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    color: var(--gold-primary);
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    border-bottom: 1px solid rgba(200, 170, 110, 0.1);
+    padding-bottom: 4px;
+}
+
+@media (max-width: 768px) {
+    .player-card-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .player-identity-section {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .player-meta-info {
+        align-items: center;
+    }
+    
+    .player-rank-section {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .player-card-body {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .player-card-left-col {
+        max-width: 100%;
+        text-align: center;
+    }
+    
+    .achievements-badges-grid {
+        justify-content: center !important;
+    }
 }

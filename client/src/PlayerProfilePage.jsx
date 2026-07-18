@@ -62,7 +62,7 @@ function PlayerProfilePage() {
     }
 
     return (
-        <div className="profile-page-wrapper" style={{ maxWidth: '720px', margin: '2rem auto', padding: '0 1rem' }}>
+        <div className="profile-page-wrapper" style={{ maxWidth: '100%', margin: '0 auto', padding: '0' }}>
             <ToastContainer />
             
             {/* Breadcrumb Navigation */}

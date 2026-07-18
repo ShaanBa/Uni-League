@@ -77,86 +77,81 @@ function PlayerCard({ data }) {
 
   return (
     <div className="player-card hextech-card">
-      <div className="profile-icon-container">
-        <img
-          className="profile-icon"
-          src={iconUrl}
-          alt={`${data.gameName} profile icon`}
-        />
+      {/* HEADER SECTION: Identity & Rank Info */}
+      <div className="player-card-header">
+        <div className="player-identity-section">
+          <div className="profile-icon-container">
+            <img
+              className="profile-icon"
+              src={iconUrl}
+              alt={`${data.gameName} profile icon`}
+            />
+          </div>
+          <div className="player-meta-info">
+            <div className="player-name-row">
+              {data.gameName}
+              <span className="player-tag-row">#{data.tagLine || data.tag}</span>
+            </div>
+            <div className="rank-row-container" style={{ justifyContent: 'flex-start', marginTop: '4px' }}>
+              {data.region && (
+                <span className="badge-region-tag">{data.region}</span>
+              )}
+              {data.main_lane && (
+                <span className="badge-lane-tag">{data.main_lane}</span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {data.rankTier !== 'UNRANKED' && (
+          <div className="player-rank-section">
+            <img 
+              className="rank-emblem-badge"
+              src={emblemUrl} 
+              alt={`${data.rankTier} emblem`} 
+              onError={(e) => e.target.style.display = 'none'} 
+            />
+            <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'right' }}>
+              <div className="rank-line" style={{ color: rankColor, fontSize: '1rem', letterSpacing: '1px' }}>
+                {data.rankTier} {data.rankDivision && data.rankDivision !== 'N/A' ? ` ${data.rankDivision}` : ''}
+              </div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-main)', marginTop: '2px', fontWeight: 'bold' }}>
+                {data.lp} LP
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="player-name-row">
-        {data.gameName}
-        <span className="player-tag-row">#{data.tagLine || data.tag}</span>
-      </div>
-
-      {/* Bio and Social Handles */}
-      {(data.bio || data.discord_handle || data.twitter_handle) && (
-        <div className="player-socials-box" style={{ margin: '8px auto 12px auto', width: '90%', padding: '8px', border: '1px solid rgba(255,255,255,0.05)', background: 'rgba(2,6,12,0.4)', borderRadius: '2px', textAlign: 'center' }}>
-          {data.bio && (
-            <p className="player-bio" style={{ margin: '0 0 6px 0', fontSize: '0.8rem', color: 'var(--text-light)', fontStyle: 'italic', wordBreak: 'break-word', lineHeight: '1.4' }}>
-              "{data.bio}"
-            </p>
+      {/* BODY SECTION: Split layout */}
+      <div className="player-card-body">
+        {/* LEFT COLUMN: Bio, Socials, Achievements */}
+        <div className="player-card-left-col">
+          {(data.bio || data.discord_handle || data.twitter_handle) && (
+            <div className="player-socials-box-new">
+              {data.bio && (
+                <p className="player-bio-text">
+                  "{data.bio}"
+                </p>
+              )}
+              <div className="socials-list">
+                {data.discord_handle && (
+                  <div className="social-item">
+                    <strong style={{ color: 'var(--hextech-blue)' }}>Discord:</strong> {data.discord_handle}
+                  </div>
+                )}
+                {data.twitter_handle && (
+                  <div className="social-item">
+                    <strong style={{ color: 'var(--gold-primary)' }}>X:</strong> @{data.twitter_handle.replace(/^@/, '')}
+                  </div>
+                )}
+              </div>
+            </div>
           )}
-          <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '12px', fontSize: '0.75rem' }}>
-            {data.discord_handle && (
-              <span style={{ color: 'var(--text-main)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                <strong style={{ color: 'var(--hextech-blue)' }}>Discord:</strong> {data.discord_handle}
-              </span>
-            )}
-            {data.twitter_handle && (
-              <span style={{ color: 'var(--text-main)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                <strong style={{ color: 'var(--gold-primary)' }}>X:</strong> @{data.twitter_handle.replace(/^@/, '')}
-              </span>
-            )}
-          </div>
-        </div>
-      )}
 
-      <div className="rank-row-container">
-        <img 
-          className="rank-emblem-badge"
-          src={emblemUrl} 
-          alt={`${data.rankTier} emblem`} 
-          onError={(e) => e.target.style.display = 'none'} 
-        />
-        <div className="rank-line" style={{ color: rankColor }}>
-          {data.rankTier}
-          {data.rankDivision && data.rankDivision !== 'N/A' ? ` ${data.rankDivision}` : ''}
-        </div>
-        {data.region && (
-          <span style={{ fontSize: '0.75rem', padding: '2px 6px', background: 'rgba(0, 210, 241, 0.1)', border: '1px solid rgba(0, 210, 241, 0.2)', color: 'var(--hextech-blue)', borderRadius: '2px', textTransform: 'uppercase', fontWeight: 'bold' }}>
-            {data.region}
-          </span>
-        )}
-        {data.main_lane && (
-          <span style={{ fontSize: '0.75rem', padding: '2px 6px', background: 'rgba(226, 177, 60, 0.1)', border: '1px solid rgba(226, 177, 60, 0.2)', color: 'var(--gold-primary)', borderRadius: '2px', textTransform: 'uppercase', fontWeight: 'bold', marginLeft: '6px' }}>
-            {data.main_lane}
-          </span>
-        )}
-      </div>
-
-      {data.rankTier !== 'UNRANKED' && (
-        <>
-          <div className="profile-stats-grid">
-            <div className="stat-box">
-              <span className="stat-label">LP</span>
-              <span className="stat-value">{data.lp}</span>
-            </div>
-
-            <div className="stat-box">
-              <span className="stat-label">Record</span>
-              <span className="stat-value">{data.wins}W - {data.losses}L</span>
-            </div>
-
-            <div className="stat-box">
-              <span className="stat-label">Winrate</span>
-              <span className={`stat-value ${winRateClass}`}>{winRate}%</span>
-            </div>
-          </div>
-
-          <div className="achievements-section">
-            <div className="achievements-badges-grid">
+          <div className="achievements-section-new">
+            <div className="section-title-sub">Achievements</div>
+            <div className="achievements-badges-grid" style={{ justifyContent: 'flex-start' }}>
               {isCarryMachine && (
                 <span className="badge-chip carry-machine" title="Holds a 55%+ winrate over 5+ games">
                   [ CARRY MACHINE ]
@@ -189,92 +184,109 @@ function PlayerCard({ data }) {
               )}
             </div>
           </div>
-        </>
-      )}
+        </div>
 
-      {/* Top Champions / Play-rates Section */}
-      {topChampions && topChampions.length > 0 && (
-        <>
-          <div className="matches-section-title">Most Played Champions (Recent)</div>
-          <div className="champions-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', margin: '0 15px 15px 15px' }}>
-            {topChampions.map((champ) => {
-              const champImg = championImgUrl(champ.name);
-              return (
-                <div key={champ.name} className="champion-stats-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px', background: 'rgba(2, 6, 12, 0.4)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '4px' }}>
-                  <img 
-                    src={champImg} 
-                    alt={champ.name} 
-                    style={{ width: '42px', height: '42px', borderRadius: '50%', border: '1.5px solid var(--border-gold)', marginBottom: '6px' }}
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = FALLBACK_ICON;
-                    }}
-                  />
-                  <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-light)', marginBottom: '4px' }}>{champ.name}</div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-main)', marginBottom: '2px' }}>
-                    {champ.count} {champ.count === 1 ? 'Game' : 'Games'} • <span style={{ color: champ.winrate >= 50 ? '#20bf6b' : '#eb4d4b', fontWeight: 'bold' }}>{champ.winrate}% WR</span>
-                  </div>
-                  <div style={{ fontSize: '0.68rem', color: getKdaRatioColor(champ.kda), fontWeight: '800' }}>
-                    {champ.kda === 'Perfect' ? 'Perfect KDA' : `${champ.kda} KDA`}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </>
-      )}
+        {/* RIGHT COLUMN: Stats, Top Champions, Recent Matches */}
+        <div className="player-card-right-col">
+          {data.rankTier !== 'UNRANKED' && (
+            <div className="profile-stats-grid">
+              <div className="stat-box">
+                <span className="stat-label">LP</span>
+                <span className="stat-value">{data.lp}</span>
+              </div>
 
-      {/* Recent Match History Section */}
-      {data.recentMatches && data.recentMatches.length > 0 && (
-        <>
-          <div className="matches-section-title">Recent Matches</div>
-          <div className="matches-container">
-            {data.recentMatches.map((match) => {
-              const matchWinClass = match.win ? 'match-row-win' : 'match-row-loss';
-              const outcomeText = match.win ? 'Win' : 'Loss';
-              const outcomeClass = match.win ? 'text-win' : 'text-loss';
-              
-              // Data Dragon champion face icon URL
-              const champImgUrl = championImgUrl(match.championName);
-              
-              // Calculate KDA metrics
-              const kdaRatioVal = match.deaths === 0 ? 'Perfect' : ((match.kills + match.assists) / match.deaths).toFixed(2);
-              const kdaRatioColor = getKdaRatioColor(kdaRatioVal);
-              
-              return (
-                <div key={match.matchId} className={`match-row ${matchWinClass}`}>
-                  <div className="match-champ-info">
-                    <img 
-                      className="match-champ-icon" 
-                      src={champImgUrl} 
-                      alt={match.championName} 
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        // Fallback generic icon
-                        e.target.src = FALLBACK_ICON;
-                      }}
-                    />
-                    <div>
-                      <div className="match-champ-name">{match.championName}</div>
-                      <div className={`match-outcome-text ${outcomeClass}`}>{outcomeText}</div>
+              <div className="stat-box">
+                <span className="stat-label">Record</span>
+                <span className="stat-value">{data.wins}W - {data.losses}L</span>
+              </div>
+
+              <div className="stat-box">
+                <span className="stat-label">Winrate</span>
+                <span className={`stat-value ${winRateClass}`}>{winRate}%</span>
+              </div>
+            </div>
+          )}
+
+          {/* Top Champions / Play-rates Section */}
+          {topChampions && topChampions.length > 0 && (
+            <div className="top-champs-container">
+              <div className="matches-section-title" style={{ marginTop: '1rem' }}>Most Played Champions (Recent)</div>
+              <div className="champions-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', marginTop: '10px' }}>
+                {topChampions.map((champ) => {
+                  const champImg = championImgUrl(champ.name);
+                  return (
+                    <div key={champ.name} className="champion-stats-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px', background: 'rgba(2, 6, 12, 0.4)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '4px' }}>
+                      <img 
+                        src={champImg} 
+                        alt={champ.name} 
+                        style={{ width: '42px', height: '42px', borderRadius: '50%', border: '1.5px solid var(--border-gold)', marginBottom: '6px' }}
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = FALLBACK_ICON;
+                        }}
+                      />
+                      <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-light)', marginBottom: '4px' }}>{champ.name}</div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-main)', marginBottom: '2px' }}>
+                        {champ.count} {champ.count === 1 ? 'Game' : 'Games'} • <span style={{ color: champ.winrate >= 50 ? '#20bf6b' : '#eb4d4b', fontWeight: 'bold' }}>{champ.winrate}% WR</span>
+                      </div>
+                      <div style={{ fontSize: '0.68rem', color: getKdaRatioColor(champ.kda), fontWeight: '800' }}>
+                        {champ.kda === 'Perfect' ? 'Perfect KDA' : `${champ.kda} KDA`}
+                      </div>
                     </div>
-                  </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Recent Match History Section */}
+          {data.recentMatches && data.recentMatches.length > 0 && (
+            <div className="recent-matches-container">
+              <div className="matches-section-title">Recent Matches</div>
+              <div className="matches-container">
+                {data.recentMatches.map((match) => {
+                  const matchWinClass = match.win ? 'match-row-win' : 'match-row-loss';
+                  const outcomeText = match.win ? 'Win' : 'Loss';
+                  const outcomeClass = match.win ? 'text-win' : 'text-loss';
+                  const champImgUrl = championImgUrl(match.championName);
+                  const kdaRatioVal = match.deaths === 0 ? 'Perfect' : ((match.kills + match.assists) / match.deaths).toFixed(2);
+                  const kdaRatioColor = getKdaRatioColor(kdaRatioVal);
                   
-                  <div className="match-stats-info">
-                    <div className="match-kda-text">
-                      {match.kills} / <span style={{ color: '#eb4d4b', fontWeight: 'bold' }}>{match.deaths}</span> / {match.assists}
+                  return (
+                    <div key={match.matchId} className={`match-row ${matchWinClass}`}>
+                      <div className="match-champ-info">
+                        <img 
+                          className="match-champ-icon" 
+                          src={champImgUrl} 
+                          alt={match.championName} 
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = FALLBACK_ICON;
+                          }}
+                        />
+                        <div>
+                          <div className="match-champ-name">{match.championName}</div>
+                          <div className={`match-outcome-text ${outcomeClass}`}>{outcomeText}</div>
+                        </div>
+                      </div>
+                      
+                      <div className="match-stats-info">
+                        <div className="match-kda-text">
+                          {match.kills} / <span style={{ color: '#eb4d4b', fontWeight: 'bold' }}>{match.deaths}</span> / {match.assists}
+                        </div>
+                        <div style={{ fontSize: '0.72rem', color: kdaRatioColor, marginTop: '1px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          {kdaRatioVal === 'Perfect' ? 'Perfect KDA' : `${kdaRatioVal} KDA`}
+                        </div>
+                        <div className="match-meta-text">{match.cs} CS • {match.duration}m</div>
+                      </div>
                     </div>
-                    <div style={{ fontSize: '0.72rem', color: kdaRatioColor, marginTop: '1px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      {kdaRatioVal === 'Perfect' ? 'Perfect KDA' : `${kdaRatioVal} KDA`}
-                    </div>
-                    <div className="match-meta-text">{match.cs} CS • {match.duration}m</div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </>
-      )}
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
