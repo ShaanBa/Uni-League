@@ -44,7 +44,7 @@ export function getPositionIconUrl(lane) {
         JUNGLE: 'jungle',
         MIDDLE: 'middle',
         BOTTOM: 'bottom',
-        SUPPORT: 'support',
+        SUPPORT: 'utility',
         FILL: 'fill'
     };
     const key = mapping[l] || 'fill';
