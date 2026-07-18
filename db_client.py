@@ -388,7 +388,8 @@ def init_db():
         cur.execute("ALTER TABLE summoners ADD COLUMN IF NOT EXISTS region VARCHAR(8) DEFAULT 'na1'")
         
         # Add main_lane column to summoners table
-        cur.execute("ALTER TABLE summoners ADD COLUMN IF NOT EXISTS main_lane VARCHAR(16) DEFAULT 'FILL'")
+        cur.execute("ALTER TABLE summoners ADD COLUMN IF NOT EXISTS main_lane VARCHAR(64) DEFAULT 'FILL'")
+        cur.execute("ALTER TABLE summoners ALTER COLUMN main_lane TYPE VARCHAR(64)")
         
         # Add last_refreshed column to summoners table
         cur.execute("ALTER TABLE summoners ADD COLUMN IF NOT EXISTS last_refreshed TIMESTAMP DEFAULT CURRENT_TIMESTAMP")

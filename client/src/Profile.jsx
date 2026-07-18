@@ -20,7 +20,7 @@ function Profile() {
     const [discord, setDiscord] = useState("")
     const [twitter, setTwitter] = useState("")
     const [bio, setBio] = useState("")
-    const [mainLane, setMainLane] = useState("FILL")
+    const [mainLane, setMainLane] = useState(["FILL"])
     const [updatingSocials, setUpdatingSocials] = useState(false)
     const [showEditSocials, setShowEditSocials] = useState(false)
 
@@ -51,7 +51,7 @@ function Profile() {
                 setDiscord(data.discord_handle || "")
                 setTwitter(data.twitter_handle || "")
                 setBio(data.bio || "")
-                setMainLane(data.main_lane || "FILL")
+                setMainLane(data.main_lane ? data.main_lane.split(',') : ["FILL"])
             } else if (response.status === 404) {
                 // Not claimed yet, which is expected
                 setPlayerData(null)
@@ -168,7 +168,7 @@ function Profile() {
                     discord_handle: discord.trim(),
                     twitter_handle: twitter.trim(),
                     bio: bio.trim(),
-                    main_lane: mainLane
+                    main_lane: mainLane.join(',')
                 })
             })
             const data = await response.json()
@@ -182,7 +182,7 @@ function Profile() {
                     discord_handle: discord.trim(),
                     twitter_handle: twitter.trim(),
                     bio: bio.trim(),
-                    main_lane: mainLane
+                    main_lane: mainLane.join(',')
                 }))
             } else {
                 setError(data.error || "Failed to update socials.")
@@ -302,28 +302,38 @@ function Profile() {
                                 />
                             </div>
                             <div className="form-group" style={{ marginBottom: '10px' }}>
-                                <label style={{ fontSize: '0.75rem' }}>Main Position / Lane</label>
-                                <select 
-                                    value={mainLane}
-                                    onChange={(e) => setMainLane(e.target.value)}
-                                    style={{ 
-                                        width: '100%', 
-                                        background: '#02060c', 
-                                        border: '1px solid var(--border-blue)', 
-                                        color: '#e2e8f0', 
-                                        padding: '8px', 
-                                        borderRadius: '2px', 
-                                        fontSize: '0.85rem',
-                                        fontFamily: 'inherit'
-                                    }}
-                                >
-                                    <option value="TOP">Top</option>
-                                    <option value="JUNGLE">Jungle</option>
-                                    <option value="MIDDLE">Middle</option>
-                                    <option value="BOTTOM">Bottom</option>
-                                    <option value="SUPPORT">Support</option>
-                                    <option value="FILL">Fill</option>
-                                </select>
+                                <label style={{ fontSize: '0.75rem' }}>Main Positions / Lanes (Select multiple)</label>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginTop: '4px' }}>
+                                    {["TOP", "JUNGLE", "MIDDLE", "BOTTOM", "SUPPORT", "FILL"].map(lane => {
+                                        const isChecked = mainLane.includes(lane);
+                                        return (
+                                            <label key={lane} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', cursor: 'pointer', color: 'var(--text-light)' }}>
+                                                <input 
+                                                    type="checkbox"
+                                                    checked={isChecked}
+                                                    onChange={(e) => {
+                                                        if (e.target.checked) {
+                                                            if (lane === "FILL") {
+                                                                setMainLane(["FILL"]);
+                                                            } else {
+                                                                setMainLane(prev => {
+                                                                    const filtered = prev.filter(x => x !== "FILL");
+                                                                    return [...filtered, lane];
+                                                                });
+                                                            }
+                                                        } else {
+                                                            setMainLane(prev => {
+                                                                const next = prev.filter(x => x !== lane);
+                                                                return next.length === 0 ? ["FILL"] : next;
+                                                            });
+                                                        }
+                                                    }}
+                                                />
+                                                {lane.charAt(0) + lane.slice(1).toLowerCase()}
+                                            </label>
+                                        );
+                                    })}
+                                </div>
                             </div>
                             <div className="form-group" style={{ marginBottom: '12px' }}>
                                 <label style={{ fontSize: '0.75rem' }}>Short Gaming Bio (Max 255 chars)</label>

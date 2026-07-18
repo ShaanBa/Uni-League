@@ -1,5 +1,5 @@
 import './PlayerCard.css';
-import { getRankColor, FALLBACK_ICON, DDRAGON_VERSION, championImgUrl } from './utils';
+import { getRankColor, FALLBACK_ICON, DDRAGON_VERSION, championImgUrl, getPositionIconUrl } from './utils';
 
 function PlayerCard({ data }) {
   if (!data) return null;
@@ -96,9 +96,21 @@ function PlayerCard({ data }) {
               {data.region && (
                 <span className="badge-region-tag">{data.region}</span>
               )}
-              {data.main_lane && (
-                <span className="badge-lane-tag">{data.main_lane}</span>
-              )}
+              {data.main_lane && data.main_lane.split(',').map(lane => {
+                const iconUrl = getPositionIconUrl(lane);
+                return (
+                  <img 
+                    key={lane}
+                    src={iconUrl}
+                    alt={lane}
+                    title={lane}
+                    style={{ width: '22px', height: '22px', marginLeft: '6px', filter: 'brightness(1.1) drop-shadow(0 0 2px rgba(226, 177, 60, 0.45))', verticalAlign: 'middle' }}
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                );
+              })}
             </div>
           </div>
         </div>

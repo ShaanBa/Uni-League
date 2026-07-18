@@ -866,15 +866,22 @@ def update_socials(current_user_id):
     discord_handle = data.get('discord_handle', '').strip()
     twitter_handle = data.get('twitter_handle', '').strip()
     bio = data.get('bio', '').strip()
-    main_lane = data.get('main_lane', 'FILL').strip().upper()
     
     # Check bio length
     if len(bio) > 255:
         return jsonify({"error": "Bio cannot exceed 255 characters."}), 400
         
+    main_lane_raw = data.get('main_lane', 'FILL')
+    if isinstance(main_lane_raw, list):
+        main_lanes = [l.strip().upper() for l in main_lane_raw]
+    else:
+        main_lanes = [l.strip().upper() for l in str(main_lane_raw).split(',') if l.strip()]
+        
     valid_lanes = ["TOP", "JUNGLE", "MIDDLE", "BOTTOM", "SUPPORT", "FILL"]
-    if main_lane not in valid_lanes:
-        main_lane = "FILL"
+    filtered_lanes = [l for l in main_lanes if l in valid_lanes]
+    if not filtered_lanes:
+        filtered_lanes = ["FILL"]
+    main_lane = ",".join(filtered_lanes)
         
     try:
         update_user_socials(current_user_id, discord_handle or None, twitter_handle or None, bio or None, main_lane)

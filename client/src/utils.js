@@ -34,3 +34,19 @@ export function championImgUrl(championName) {
     if (!championName) return FALLBACK_ICON;
     return `https://ddragon.leagueoflegends.com/cdn/${DDRAGON_VERSION}/img/champion/${championName.replace(/\s+/g, '')}.png`;
 }
+
+/** Build a Community Dragon position (role) icon URL. */
+export function getPositionIconUrl(lane) {
+    if (!lane) return '';
+    const l = lane.toUpperCase();
+    const mapping = {
+        TOP: 'top',
+        JUNGLE: 'jungle',
+        MIDDLE: 'middle',
+        BOTTOM: 'bottom',
+        SUPPORT: 'support',
+        FILL: 'fill'
+    };
+    const key = mapping[l] || 'fill';
+    return `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-clash/global/default/assets/images/position-selector/positions/icon-position-${key}.png`;
+}

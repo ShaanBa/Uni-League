@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Leaderboard.css';
 import PlayerCard from './PlayerCard';
-import { getRankColor, FALLBACK_ICON } from './utils';
+import { getRankColor, FALLBACK_ICON, getPositionIconUrl } from './utils';
 
 function Leaderboard() {
     const navigate = useNavigate();
@@ -429,9 +429,25 @@ function Leaderboard() {
                                                 </td>
 
                                                 <td>
-                                                    <span style={{ fontSize: '0.78rem', color: 'var(--text-light)', border: '1px solid rgba(226, 177, 60, 0.15)', background: 'rgba(226, 177, 60, 0.05)', padding: '2px 8px', borderRadius: '2px', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px' }}>
-                                                        {player.main_lane || 'FILL'}
-                                                    </span>
+                                                    <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-start', alignItems: 'center' }}>
+                                                        {player.main_lane ? player.main_lane.split(',').map(lane => {
+                                                            const iconUrl = getPositionIconUrl(lane);
+                                                            return (
+                                                                <img 
+                                                                    key={lane}
+                                                                    src={iconUrl}
+                                                                    alt={lane}
+                                                                    title={lane}
+                                                                    style={{ width: '20px', height: '20px', filter: 'brightness(1.1) drop-shadow(0 0 1px rgba(226,177,60,0.3))' }}
+                                                                    onError={(e) => {
+                                                                        e.target.style.display = 'none';
+                                                                    }}
+                                                                />
+                                                            );
+                                                        }) : (
+                                                            <span style={{ fontSize: '0.78rem', color: 'var(--text-main)' }}>-</span>
+                                                        )}
+                                                    </div>
                                                 </td>
                                                 
                                                 <td className="col-tier" style={{ color: getRankColor(player.rank_tier) }}>
