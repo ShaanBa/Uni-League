@@ -16,6 +16,13 @@ function Profile() {
     const [verifyingEmail, setVerifyingEmail] = useState(false)
     const [resending, setResending] = useState(false)
 
+    // Social management states
+    const [discord, setDiscord] = useState("")
+    const [twitter, setTwitter] = useState("")
+    const [bio, setBio] = useState("")
+    const [updatingSocials, setUpdatingSocials] = useState(false)
+    const [showEditSocials, setShowEditSocials] = useState(false)
+
     const fetchProfile = async () => {
         if (!token) {
             setLoading(false)
@@ -40,6 +47,9 @@ function Profile() {
             
             if (response.ok) {
                 setPlayerData(data)
+                setDiscord(data.discord_handle || "")
+                setTwitter(data.twitter_handle || "")
+                setBio(data.bio || "")
             } else if (response.status === 404) {
                 // Not claimed yet, which is expected
                 setPlayerData(null)
@@ -140,6 +150,46 @@ function Profile() {
         }
     }
 
+    const handleSaveSocials = async (e) => {
+        e.preventDefault();
+        setError(null)
+        setUpdatingSocials(true)
+
+        try {
+            const response = await fetch('/api/profile/socials', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    discord_handle: discord.trim(),
+                    twitter_handle: twitter.trim(),
+                    bio: bio.trim()
+                })
+            })
+            const data = await response.json()
+            
+            if (response.ok) {
+                showToast("Social profiles updated successfully!", 'success')
+                setShowEditSocials(false)
+                // Refresh local profile state with updated values
+                setPlayerData(prev => ({
+                    ...prev,
+                    discord_handle: discord.trim(),
+                    twitter_handle: twitter.trim(),
+                    bio: bio.trim()
+                }))
+            } else {
+                setError(data.error || "Failed to update socials.")
+            }
+        } catch (err) {
+            setError("Could not reach servers to update socials.")
+        } finally {
+            setUpdatingSocials(false)
+        }
+    }
+
     if (loading) {
         return (
             <div style={{ margin: '3rem auto', fontStyle: 'italic', color: 'var(--gold-primary)' }}>
@@ -206,13 +256,73 @@ function Profile() {
                 <div style={{ marginTop: '2rem' }}>
                     <PlayerCard data={playerData} />
                     
-                    <button 
-                        onClick={refreshMyStats} 
-                        disabled={refreshing}
-                        style={{ marginTop: '1.5rem', border: '1px solid var(--hextech-blue)', color: 'var(--hextech-blue)' }}
-                    >
-                        {refreshing ? "Refreshing stats..." : "Refresh My Stats"}
-                    </button>
+                    <div style={{ marginTop: '1.2rem', display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                        <button 
+                            onClick={refreshMyStats} 
+                            disabled={refreshing}
+                            style={{ border: '1px solid var(--hextech-blue)', color: 'var(--hextech-blue)', padding: '0.45rem 1rem', fontSize: '0.8rem' }}
+                        >
+                            {refreshing ? "Refreshing stats..." : "Refresh My Stats"}
+                        </button>
+                        <button 
+                            onClick={() => setShowEditSocials(!showEditSocials)}
+                            style={{ border: '1px solid var(--border-gold)', color: 'var(--gold-primary)', padding: '0.45rem 1rem', fontSize: '0.8rem' }}
+                        >
+                            {showEditSocials ? "Close Edit" : "Edit Social Profiles"}
+                        </button>
+                    </div>
+
+                    {showEditSocials && (
+                        <form onSubmit={handleSaveSocials} className="hextech-card" style={{ maxWidth: '440px', margin: '1.5rem auto 0 auto', padding: '1.2rem', textAlign: 'left', background: 'rgba(6, 11, 19, 0.7)' }}>
+                            <h4 style={{ fontFamily: 'Cinzel', color: 'var(--gold-primary)', marginTop: 0, marginBottom: '1rem', fontSize: '0.95rem', borderBottom: '1px solid var(--border-gold)', paddingBottom: '4px' }}>
+                                Edit Gaming Handles
+                            </h4>
+                            <div className="form-group" style={{ marginBottom: '10px' }}>
+                                <label style={{ fontSize: '0.75rem' }}>Discord Tag</label>
+                                <input 
+                                    type="text" 
+                                    placeholder="Username or Username#0000"
+                                    value={discord}
+                                    onChange={(e) => setDiscord(e.target.value)}
+                                    style={{ fontSize: '0.85rem', padding: '6px' }}
+                                />
+                            </div>
+                            <div className="form-group" style={{ marginBottom: '10px' }}>
+                                <label style={{ fontSize: '0.75rem' }}>Twitter / X Username</label>
+                                <input 
+                                    type="text" 
+                                    placeholder="e.g. shaan_b"
+                                    value={twitter}
+                                    onChange={(e) => setTwitter(e.target.value)}
+                                    style={{ fontSize: '0.85rem', padding: '6px' }}
+                                />
+                            </div>
+                            <div className="form-group" style={{ marginBottom: '12px' }}>
+                                <label style={{ fontSize: '0.75rem' }}>Short Gaming Bio (Max 255 chars)</label>
+                                <textarea 
+                                    placeholder="Mid main looking for clash team..."
+                                    value={bio}
+                                    onChange={(e) => setBio(e.target.value)}
+                                    maxLength={255}
+                                    rows={3}
+                                    style={{ 
+                                        width: '100%', 
+                                        background: '#02060c', 
+                                        border: '1px solid var(--border-blue)', 
+                                        color: '#e2e8f0', 
+                                        padding: '8px', 
+                                        borderRadius: '2px', 
+                                        fontSize: '0.85rem',
+                                        resize: 'vertical',
+                                        fontFamily: 'inherit'
+                                    }}
+                                />
+                            </div>
+                            <button type="submit" disabled={updatingSocials} style={{ width: '100%', padding: '0.5rem', fontSize: '0.85rem' }}>
+                                {updatingSocials ? "Saving..." : "Save Changes"}
+                            </button>
+                        </form>
+                    )}
                 </div>
             ) : (
                 <div style={{ margin: '2rem auto', padding: '3rem', border: '1px dashed var(--border-gold)', borderRadius: '4px' }}>

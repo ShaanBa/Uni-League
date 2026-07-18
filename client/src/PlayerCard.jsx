@@ -66,6 +66,29 @@ function PlayerCard({ data }) {
         <span className="player-tag-row">#{data.tagLine || data.tag}</span>
       </div>
 
+      {/* Bio and Social Handles */}
+      {(data.bio || data.discord_handle || data.twitter_handle) && (
+        <div className="player-socials-box" style={{ margin: '8px auto 12px auto', width: '90%', padding: '8px', border: '1px solid rgba(255,255,255,0.05)', background: 'rgba(2,6,12,0.4)', borderRadius: '2px', textAlign: 'center' }}>
+          {data.bio && (
+            <p className="player-bio" style={{ margin: '0 0 6px 0', fontSize: '0.8rem', color: 'var(--text-light)', fontStyle: 'italic', wordBreak: 'break-word', lineHeight: '1.4' }}>
+              "{data.bio}"
+            </p>
+          )}
+          <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '12px', fontSize: '0.75rem' }}>
+            {data.discord_handle && (
+              <span style={{ color: 'var(--text-main)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <strong style={{ color: 'var(--hextech-blue)' }}>Discord:</strong> {data.discord_handle}
+              </span>
+            )}
+            {data.twitter_handle && (
+              <span style={{ color: 'var(--text-main)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <strong style={{ color: 'var(--gold-primary)' }}>X:</strong> @{data.twitter_handle.replace(/^@/, '')}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="rank-row-container">
         <img 
           className="rank-emblem-badge"

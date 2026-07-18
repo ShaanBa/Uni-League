@@ -16,7 +16,8 @@ from db_client import (
     get_university_leaderboard, get_university_details, get_university_summoners,
     get_db_connection, create_university_dynamically,
     get_summoner_owner, create_ticket, get_tickets, update_ticket_status,
-    set_user_reset_code, get_user_reset_info, update_user_password
+    set_user_reset_code, get_user_reset_info, update_user_password,
+    update_user_socials
 )
 from auth_utils import validate_email, hash_password, check_password, validate_password_strength, send_verification_email, send_password_reset_email
 from flask_cors import CORS
@@ -848,6 +849,25 @@ def reset_password():
         return jsonify({"message": "Password reset successfully!"})
     except Exception as e:
         return jsonify({"error": f"Failed to update password: {str(e)}"}), 500
+
+
+@app.route('/api/profile/socials', methods=['POST'])
+@token_required
+def update_socials(current_user_id):
+    data = request.get_json() or {}
+    discord_handle = data.get('discord_handle', '').strip()
+    twitter_handle = data.get('twitter_handle', '').strip()
+    bio = data.get('bio', '').strip()
+    
+    # Check bio length
+    if len(bio) > 255:
+        return jsonify({"error": "Bio cannot exceed 255 characters."}), 400
+        
+    try:
+        update_user_socials(current_user_id, discord_handle or None, twitter_handle or None, bio or None)
+        return jsonify({"message": "Social profiles updated successfully!"})
+    except Exception as e:
+        return jsonify({"error": f"Failed to update socials: {str(e)}"}), 500
 
 
 if __name__ == '__main__':

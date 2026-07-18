@@ -314,9 +314,11 @@ def get_profile_by_user(user_id):
     with get_db_connection() as con:
         cur = con.cursor(cursor_factory=RealDictCursor)
         query = """
-            SELECT puuid, game_name, tag, rank_tier, rank_division, lp, wins, losses, profile_icon_id, region, last_refreshed
-            FROM summoners 
-            WHERE user_id = %s
+            SELECT s.puuid, s.game_name, s.tag, s.rank_tier, s.rank_division, s.lp, s.wins, s.losses, s.profile_icon_id, s.region, s.last_refreshed,
+                   u.discord_handle, u.twitter_handle, u.bio
+            FROM summoners s
+            INNER JOIN users u ON s.user_id = u.user_id
+            WHERE s.user_id = %s
         """
         cur.execute(query, (user_id,))
         return cur.fetchone()
@@ -329,7 +331,8 @@ def get_profile_by_puuid(puuid):
         cur = con.cursor(cursor_factory=RealDictCursor)
         query = """
             SELECT s.puuid, s.game_name, s.tag, s.rank_tier, s.rank_division, s.lp, s.wins, s.losses, s.profile_icon_id, s.region, s.last_refreshed,
-                   u.uni_id, u.uni_name, u.uni_logo_link, u.uni_domain
+                   u.uni_id, u.uni_name, u.uni_logo_link, u.uni_domain,
+                   us.discord_handle, us.twitter_handle, us.bio
             FROM summoners s
             LEFT JOIN users us ON s.user_id = us.user_id
             LEFT JOIN universities u ON us.uni_id = u.uni_id
@@ -337,6 +340,17 @@ def get_profile_by_puuid(puuid):
         """
         cur.execute(query, (puuid,))
         return cur.fetchone()
+
+def update_user_socials(user_id, discord_handle, twitter_handle, bio):
+    with get_db_connection() as con:
+        cur = con.cursor()
+        query = """
+            UPDATE users 
+            SET discord_handle = %s, twitter_handle = %s, bio = %s 
+            WHERE user_id = %s
+        """
+        cur.execute(query, (discord_handle, twitter_handle, bio, user_id))
+        return True
 
 # --- Verification & Security Extensions ---
 
@@ -353,6 +367,11 @@ def init_db():
         # Add password reset columns to users table
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_code VARCHAR(6)")
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_code_expires TIMESTAMP")
+        
+        # Add social handles and bio columns to users table
+        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS discord_handle VARCHAR(100)")
+        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS twitter_handle VARCHAR(100)")
+        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS bio VARCHAR(255)")
         
         # Add index on users(uni_id) to optimize university lookups and leaderboard queries
         cur.execute("CREATE INDEX IF NOT EXISTS idx_users_uni_id ON users(uni_id)")
