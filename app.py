@@ -269,7 +269,8 @@ def verify_email(current_user_id):
         
     now = datetime.datetime.now(datetime.timezone.utc)
     
-    if not expected_code or (expected_code != code and code != "123456"):
+    is_dev_bypass = (os.environ.get('FLASK_ENV') == 'development' and code == "123456")
+    if not expected_code or (expected_code != code and not is_dev_bypass):
         return jsonify({"error": "Invalid verification code!"}), 400
         
     if expires_at and now > expires_at:
@@ -844,7 +845,8 @@ def reset_password():
     stored_code = reset_info.get('reset_code')
     expiry = reset_info.get('reset_code_expires')
     
-    if stored_code != code and code != "123456":
+    is_dev_bypass = (os.environ.get('FLASK_ENV') == 'development' and code == "123456")
+    if stored_code != code and not is_dev_bypass:
         return jsonify({"error": "Invalid reset code."}), 400
         
     if expiry:
