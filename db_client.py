@@ -350,6 +350,10 @@ def init_db():
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_code VARCHAR(6)")
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_code_expires TIMESTAMP")
         
+        # Add password reset columns to users table
+        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_code VARCHAR(6)")
+        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_code_expires TIMESTAMP")
+        
         # Add index on users(uni_id) to optimize university lookups and leaderboard queries
         cur.execute("CREATE INDEX IF NOT EXISTS idx_users_uni_id ON users(uni_id)")
         
@@ -431,6 +435,35 @@ def verify_user_email(user_id):
     with get_db_connection() as con:
         cur = con.cursor()
         cur.execute("UPDATE users SET is_verified = TRUE, verification_code = NULL, verification_code_expires = NULL WHERE user_id = %s", (user_id,))
+
+def set_user_reset_code(email, code, expires_at):
+    with get_db_connection() as con:
+        cur = con.cursor()
+        query = """
+            UPDATE users 
+            SET reset_code = %s, reset_code_expires = %s 
+            WHERE LOWER(user_email) = %s
+        """
+        cur.execute(query, (code, expires_at, email.lower().strip()))
+        return True
+
+def get_user_reset_info(email):
+    with get_db_connection() as con:
+        cur = con.cursor(cursor_factory=RealDictCursor)
+        query = "SELECT reset_code, reset_code_expires FROM users WHERE LOWER(user_email) = %s"
+        cur.execute(query, (email.lower().strip(),))
+        return cur.fetchone()
+
+def update_user_password(email, new_password_hash):
+    with get_db_connection() as con:
+        cur = con.cursor()
+        query = """
+            UPDATE users 
+            SET password_hash = %s, reset_code = NULL, reset_code_expires = NULL 
+            WHERE LOWER(user_email) = %s
+        """
+        cur.execute(query, (new_password_hash, email.lower().strip()))
+        return True
 
 def create_pending_claim(user_id, puuid, code):
     with get_db_connection() as con:

@@ -15,9 +15,10 @@ from db_client import (
     create_pending_claim, get_pending_claim, delete_pending_claim,
     get_university_leaderboard, get_university_details, get_university_summoners,
     get_db_connection, create_university_dynamically,
-    get_summoner_owner, create_ticket, get_tickets, update_ticket_status
+    get_summoner_owner, create_ticket, get_tickets, update_ticket_status,
+    set_user_reset_code, get_user_reset_info, update_user_password
 )
-from auth_utils import validate_email, hash_password, check_password, validate_password_strength, send_verification_email
+from auth_utils import validate_email, hash_password, check_password, validate_password_strength, send_verification_email, send_password_reset_email
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -787,6 +788,66 @@ def update_ticket(ticket_id):
         return jsonify({"message": f"Ticket status updated to {status}."})
     except Exception as e:
         return jsonify({"error": "Failed to update ticket status."}), 500
+
+
+@app.route('/api/forgot_password/request', methods=['POST'])
+def request_password_reset():
+    data = request.get_json() or {}
+    email = data.get('email', '').strip().lower()
+    
+    if not email:
+        return jsonify({"error": "Email is required."}), 400
+        
+    user = get_user_by_email(email)
+    if not user:
+        return jsonify({"error": "No account found with this email."}), 404
+        
+    # Generate 6-digit code
+    code = f"{random.randint(100000, 999999)}"
+    expires_at = datetime.datetime.now() + datetime.timedelta(minutes=15)
+    
+    try:
+        set_user_reset_code(email, code, expires_at)
+        send_password_reset_email(email, code)
+        return jsonify({"message": "Verification code sent to your student email."})
+    except Exception as e:
+        return jsonify({"error": f"Failed to send reset code: {str(e)}"}), 500
+
+
+@app.route('/api/forgot_password/reset', methods=['POST'])
+def reset_password():
+    data = request.get_json() or {}
+    email = data.get('email', '').strip().lower()
+    code = data.get('code', '').strip()
+    new_password = data.get('password')
+    
+    if not email or not code or not new_password:
+        return jsonify({"error": "Email, code, and new password are required."}), 400
+        
+    reset_info = get_user_reset_info(email)
+    if not reset_info or not reset_info.get('reset_code'):
+        return jsonify({"error": "No password reset requested for this email."}), 400
+        
+    stored_code = reset_info.get('reset_code')
+    expiry = reset_info.get('reset_code_expires')
+    
+    if stored_code != code:
+        return jsonify({"error": "Invalid reset code."}), 400
+        
+    if expiry and datetime.datetime.now() > expiry:
+        return jsonify({"error": "Reset code has expired."}), 400
+        
+    # Validate password strength
+    is_strong, pw_error = validate_password_strength(new_password)
+    if not is_strong:
+        return jsonify({"error": pw_error}), 400
+        
+    try:
+        new_password_hash = hash_password(new_password)
+        update_user_password(email, new_password_hash)
+        return jsonify({"message": "Password reset successfully!"})
+    except Exception as e:
+        return jsonify({"error": f"Failed to update password: {str(e)}"}), 500
 
 
 if __name__ == '__main__':
