@@ -817,7 +817,7 @@ def request_password_reset():
         
     # Generate 6-digit code
     code = f"{random.randint(100000, 999999)}"
-    expires_at = datetime.datetime.now() + datetime.timedelta(minutes=15)
+    expires_at = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=15)
     
     try:
         set_user_reset_code(email, code, expires_at)
@@ -847,8 +847,12 @@ def reset_password():
     if stored_code != code and code != "123456":
         return jsonify({"error": "Invalid reset code."}), 400
         
-    if expiry and datetime.datetime.now() > expiry:
-        return jsonify({"error": "Reset code has expired."}), 400
+    if expiry:
+        if expiry.tzinfo is None:
+            expiry = expiry.replace(tzinfo=datetime.timezone.utc)
+        now = datetime.datetime.now(datetime.timezone.utc)
+        if now > expiry:
+            return jsonify({"error": "Reset code has expired."}), 400
         
     # Validate password strength
     is_strong, pw_error = validate_password_strength(new_password)

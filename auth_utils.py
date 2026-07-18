@@ -60,15 +60,41 @@ def send_email_smtp(to_email: str, subject: str, html_content: str):
         print(f"[EMAIL SENDER ERROR] SMTP failed: {e}")
         return False
 
-def send_verification_email(email: str, code: str):
-    api_key = os.getenv("RESEND_API_KEY")
+def send_email_brevo(to_email: str, subject: str, html_content: str):
+    api_key = os.getenv("BREVO_API_KEY")
     if not api_key:
-        print(f"\n=======================================================")
-        print(f"[EMAIL SIMULATION] To: {email}")
-        print(f"[EMAIL SIMULATION] Verification Code: {code}")
-        print(f"=======================================================\n")
         return False
+        
+    url = "https://api.brevo.com/v3/smtp/email"
+    headers = {
+        "accept": "application/json",
+        "api-key": api_key,
+        "content-type": "application/json"
+    }
+    
+    sender_email = os.getenv("EMAIL_FROM", "onboarding@resend.dev")
+    if "@" not in sender_email:
+        sender_email = "onboarding@resend.dev"
+        
+    data = {
+        "sender": {"name": "Uni-League", "email": sender_email},
+        "to": [{"email": to_email}],
+        "subject": subject,
+        "htmlContent": html_content
+    }
+    
+    try:
+        r = requests.post(url, json=data, headers=headers, timeout=5)
+        if r.status_code in [200, 201, 202]:
+            print(f"[EMAIL SENDER] Successfully sent Brevo email to {to_email}")
+            return True
+        else:
+            print(f"[EMAIL SENDER ERROR] Brevo failed: Status {r.status_code}, Response: {r.text}")
+    except Exception as e:
+        print(f"[EMAIL SENDER ERROR] Brevo exception: {e}")
+    return False
 
+def send_verification_email(email: str, code: str):
     from_email = os.getenv("EMAIL_FROM", "onboarding@resend.dev")
     html_content = f"""
     <!DOCTYPE html>
@@ -107,6 +133,19 @@ def send_verification_email(email: str, code: str):
         if send_email_smtp(email, "Verify your Uni-League Student Email", html_content):
             return True
 
+    # Try Brevo HTTP if configured
+    if os.getenv("BREVO_API_KEY"):
+        if send_email_brevo(email, "Verify your Uni-League Student Email", html_content):
+            return True
+
+    api_key = os.getenv("RESEND_API_KEY")
+    if not api_key:
+        print(f"\n=======================================================")
+        print(f"[EMAIL SIMULATION] To: {email}")
+        print(f"[EMAIL SIMULATION] Verification Code: {code}")
+        print(f"=======================================================\n")
+        return False
+
     try:
         url = "https://api.resend.com/emails"
         headers = {
@@ -130,14 +169,6 @@ def send_verification_email(email: str, code: str):
     return False
 
 def send_password_reset_email(email: str, code: str):
-    api_key = os.getenv("RESEND_API_KEY")
-    if not api_key:
-        print(f"\n=======================================================")
-        print(f"[EMAIL SIMULATION] To: {email}")
-        print(f"[EMAIL SIMULATION] Password Reset Code: {code}")
-        print(f"=======================================================\n")
-        return False
-
     from_email = os.getenv("EMAIL_FROM", "onboarding@resend.dev")
     html_content = f"""
     <!DOCTYPE html>
@@ -175,6 +206,19 @@ def send_password_reset_email(email: str, code: str):
     if os.getenv("SMTP_EMAIL") and os.getenv("SMTP_PASSWORD"):
         if send_email_smtp(email, "Uni-League Password Reset Authorization Code", html_content):
             return True
+
+    # Try Brevo HTTP if configured
+    if os.getenv("BREVO_API_KEY"):
+        if send_email_brevo(email, "Uni-League Password Reset Authorization Code", html_content):
+            return True
+
+    api_key = os.getenv("RESEND_API_KEY")
+    if not api_key:
+        print(f"\n=======================================================")
+        print(f"[EMAIL SIMULATION] To: {email}")
+        print(f"[EMAIL SIMULATION] Password Reset Code: {code}")
+        print(f"=======================================================\n")
+        return False
 
     try:
         url = "https://api.resend.com/emails"
