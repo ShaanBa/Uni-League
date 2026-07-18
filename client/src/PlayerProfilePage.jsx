@@ -9,6 +9,9 @@ function PlayerProfilePage() {
     const [profileData, setProfileData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const token = localStorage.getItem('user_token');
+    const [friendshipStatus, setFriendshipStatus] = useState(null);
+    const [myUserId, setMyUserId] = useState(null);
 
     useEffect(() => {
         const fetchPlayerProfile = async () => {
@@ -31,6 +34,122 @@ function PlayerProfilePage() {
 
         fetchPlayerProfile();
     }, [puuid]);
+
+    // Fetch logged in user id and friendship status
+    useEffect(() => {
+        const checkFriendship = async () => {
+            if (!token || !profileData || !profileData.claimed_user_id) {
+                setFriendshipStatus('NONE');
+                return;
+            }
+
+            try {
+                const meRes = await fetch('/api/profile/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                let loggedInId = null;
+                if (meRes.ok) {
+                    const meData = await meRes.json();
+                    setMyUserId(meData.userId);
+                    loggedInId = meData.userId;
+                }
+
+                if (loggedInId && parseInt(loggedInId) === parseInt(profileData.claimed_user_id)) {
+                    setFriendshipStatus('SELF');
+                    return;
+                }
+
+                const res = await fetch(`/api/friends/status/${profileData.claimed_user_id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const statusData = await res.json();
+                    setFriendshipStatus(statusData.status);
+                } else {
+                    setFriendshipStatus('NONE');
+                }
+            } catch (err) {
+                console.error("Error checking friendship status:", err);
+                setFriendshipStatus('NONE');
+            }
+        };
+
+        checkFriendship();
+    }, [token, profileData]);
+
+    const handleFriendAction = async () => {
+        if (!token) {
+            showToast("Please log in to add friends!", "error");
+            return;
+        }
+
+        let url = '';
+        let body = {};
+        
+        if (friendshipStatus === 'NONE') {
+            url = '/api/friends/request';
+            body = { receiver_user_id: profileData.claimed_user_id };
+        } else if (friendshipStatus === 'RECEIVED') {
+            url = '/api/friends/accept';
+            body = { sender_user_id: profileData.claimed_user_id };
+        } else if (friendshipStatus === 'SENT') {
+            url = '/api/friends/decline';
+            body = { sender_user_id: profileData.claimed_user_id };
+        } else if (friendshipStatus === 'FRIENDS') {
+            url = '/api/friends/remove';
+            body = { friend_user_id: profileData.claimed_user_id };
+        }
+
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(body)
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                showToast(data.message || "Action successful!", "success");
+                if (friendshipStatus === 'NONE') setFriendshipStatus('SENT');
+                else if (friendshipStatus === 'RECEIVED') setFriendshipStatus('FRIENDS');
+                else if (friendshipStatus === 'SENT') setFriendshipStatus('NONE');
+                else if (friendshipStatus === 'FRIENDS') setFriendshipStatus('NONE');
+            } else {
+                showToast(data.error || "An error occurred.", "error");
+            }
+        } catch (err) {
+            showToast("Failed to perform action.", "error");
+        }
+    };
+
+    const renderFriendButton = () => {
+        if (!token || !profileData || !profileData.claimed_user_id || friendshipStatus === 'SELF') {
+            return null;
+        }
+
+        let label = "Add Friend";
+        let btnStyle = { border: '1px solid var(--border-gold)', color: 'var(--gold-primary)', padding: '0.6rem 1.2rem', fontSize: '0.85rem', background: 'transparent', cursor: 'pointer', fontFamily: 'Cinzel' };
+
+        if (friendshipStatus === 'SENT') {
+            label = "Cancel Request";
+            btnStyle = { border: '1px solid var(--text-main)', color: 'var(--text-main)', padding: '0.6rem 1.2rem', fontSize: '0.85rem', background: 'transparent', cursor: 'pointer', fontFamily: 'Cinzel' };
+        } else if (friendshipStatus === 'RECEIVED') {
+            label = "Accept Request";
+            btnStyle = { border: '1px solid var(--hextech-blue)', color: 'var(--hextech-blue)', padding: '0.6rem 1.2rem', fontSize: '0.85rem', background: 'transparent', cursor: 'pointer', fontFamily: 'Cinzel' };
+        } else if (friendshipStatus === 'FRIENDS') {
+            label = "Unfriend";
+            btnStyle = { border: '1px solid var(--danger)', color: 'var(--danger)', padding: '0.6rem 1.2rem', fontSize: '0.85rem', background: 'transparent', cursor: 'pointer', fontFamily: 'Cinzel' };
+        }
+
+        return (
+            <button onClick={handleFriendAction} className="btn" style={btnStyle}>
+                {label}
+            </button>
+        );
+    };
 
     const handleCopyLink = () => {
         navigator.clipboard.writeText(window.location.href);
@@ -116,6 +235,7 @@ function PlayerProfilePage() {
                 <Link to="/leaderboard" className="btn" style={{ textDecoration: 'none', background: 'transparent', border: '1px solid var(--text-main)', color: 'var(--text-main)', padding: '0.6rem 1.2rem', fontSize: '0.85rem' }}>
                     Back to Leaderboard
                 </Link>
+                {renderFriendButton()}
                 <button onClick={handleCopyLink} className="btn" style={{ border: '1px solid var(--border-gold)', color: 'var(--gold-primary)', padding: '0.6rem 1.2rem', fontSize: '0.85rem' }}>
                     Share Profile Link
                 </button>

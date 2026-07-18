@@ -333,7 +333,7 @@ def get_profile_by_puuid(puuid):
         query = """
             SELECT s.puuid, s.game_name, s.tag, s.rank_tier, s.rank_division, s.lp, s.wins, s.losses, s.profile_icon_id, s.region, s.last_refreshed, s.main_lane,
                    u.uni_id, u.uni_name, u.uni_logo_link, u.uni_domain,
-                   us.discord_handle, us.twitter_handle, us.bio
+                   us.discord_handle, us.twitter_handle, us.bio, us.user_id as claimed_user_id
             FROM summoners s
             LEFT JOIN users us ON s.user_id = us.user_id
             LEFT JOIN universities u ON us.uni_id = u.uni_id
@@ -416,6 +416,17 @@ def init_db():
                 contact_email VARCHAR(255),
                 status VARCHAR(32) DEFAULT 'OPEN',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        # Create friendships table
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS friendships (
+                user_id_1 INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+                user_id_2 INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+                status VARCHAR(16) DEFAULT 'PENDING',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id_1, user_id_2)
             )
         """)
 
@@ -663,3 +674,99 @@ def create_university_dynamically(domain, con=None):
         except Exception as e:
             print(f"Error creating university dynamically: {e}")
             return None
+
+# --- Friendships Helpers ---
+
+def send_friend_request(sender_id, receiver_id):
+    if int(sender_id) == int(receiver_id):
+        return False, "You cannot add yourself as a friend."
+    
+    with get_db_connection() as con:
+        cur = con.cursor()
+        # Check if already exists in either direction
+        cur.execute("""
+            SELECT status, user_id_1 FROM friendships 
+            WHERE (user_id_1 = %s AND user_id_2 = %s) OR (user_id_1 = %s AND user_id_2 = %s)
+        """, (sender_id, receiver_id, receiver_id, sender_id))
+        existing = cur.fetchone()
+        
+        if existing:
+            status, u1 = existing
+            if status == 'ACCEPTED':
+                return False, "You are already friends."
+            elif status == 'PENDING':
+                if u1 == sender_id:
+                    return False, "Friend request already sent."
+                else:
+                    return False, "You have a pending friend request from this user."
+        
+        cur.execute("""
+            INSERT INTO friendships (user_id_1, user_id_2, status)
+            VALUES (%s, %s, 'PENDING')
+        """, (sender_id, receiver_id))
+        return True, "Friend request sent successfully."
+
+def accept_friend_request(sender_id, receiver_id):
+    with get_db_connection() as con:
+        cur = con.cursor()
+        cur.execute("""
+            UPDATE friendships 
+            SET status = 'ACCEPTED' 
+            WHERE user_id_1 = %s AND user_id_2 = %s AND status = 'PENDING'
+        """, (sender_id, receiver_id))
+        return True
+
+def decline_friend_request(sender_id, receiver_id):
+    with get_db_connection() as con:
+        cur = con.cursor()
+        cur.execute("""
+            DELETE FROM friendships 
+            WHERE (user_id_1 = %s AND user_id_2 = %s) OR (user_id_1 = %s AND user_id_2 = %s)
+        """, (sender_id, receiver_id, receiver_id, sender_id))
+        return True
+
+def get_pending_requests(user_id):
+    with get_db_connection() as con:
+        cur = con.cursor(cursor_factory=RealDictCursor)
+        # Fetch requests sent TO this user
+        query = """
+            SELECT u.user_id, s.puuid, s.game_name, s.tag, s.rank_tier, s.rank_division, s.lp, s.profile_icon_id, s.region, s.main_lane, uni.uni_name
+            FROM friendships f
+            JOIN users u ON f.user_id_1 = u.user_id
+            JOIN summoners s ON u.user_id = s.user_id
+            LEFT JOIN universities uni ON u.uni_id = uni.uni_id
+            WHERE f.user_id_2 = %s AND f.status = 'PENDING'
+        """
+        cur.execute(query, (user_id,))
+        return cur.fetchall()
+
+def get_friends_list(user_id):
+    with get_db_connection() as con:
+        cur = con.cursor(cursor_factory=RealDictCursor)
+        query = """
+            SELECT u.user_id, s.puuid, s.game_name, s.tag, s.rank_tier, s.rank_division, s.lp, s.profile_icon_id, s.region, s.main_lane, uni.uni_name
+            FROM friendships f
+            JOIN users u ON (CASE WHEN f.user_id_1 = %s THEN f.user_id_2 ELSE f.user_id_1 END) = u.user_id
+            JOIN summoners s ON u.user_id = s.user_id
+            LEFT JOIN universities uni ON u.uni_id = uni.uni_id
+            WHERE (f.user_id_1 = %s OR f.user_id_2 = %s) AND f.status = 'ACCEPTED'
+        """
+        cur.execute(query, (user_id, user_id, user_id))
+        return cur.fetchall()
+
+def get_friendship_status(user_id, other_user_id):
+    with get_db_connection() as con:
+        cur = con.cursor()
+        cur.execute("""
+            SELECT status, user_id_1 FROM friendships 
+            WHERE (user_id_1 = %s AND user_id_2 = %s) OR (user_id_1 = %s AND user_id_2 = %s)
+        """, (user_id, other_user_id, other_user_id, user_id))
+        row = cur.fetchone()
+        if not row:
+            return 'NONE'
+        status, sender_id = row
+        if status == 'ACCEPTED':
+            return 'FRIENDS'
+        elif status == 'PENDING':
+            return 'SENT' if sender_id == user_id else 'RECEIVED'
+        return 'NONE'

@@ -17,7 +17,9 @@ from db_client import (
     get_db_connection, create_university_dynamically,
     get_summoner_owner, create_ticket, get_tickets, update_ticket_status,
     set_user_reset_code, get_user_reset_info, update_user_password,
-    update_user_socials
+    update_user_socials, send_friend_request, accept_friend_request,
+    decline_friend_request, get_pending_requests, get_friends_list,
+    get_friendship_status
 )
 from auth_utils import validate_email, hash_password, check_password, validate_password_strength, send_verification_email, send_password_reset_email
 from flask_cors import CORS
@@ -450,6 +452,7 @@ def get_user_profile(current_user_id):
     matches = get_recent_matches(profile['puuid'], profile.get('region', 'na1'), count=5)
         
     return jsonify({
+        "userId": current_user_id,
         "gameName": profile['game_name'],
         "tagLine": profile['tag'],
         "rankTier": profile['rank_tier'],
@@ -888,6 +891,93 @@ def update_socials(current_user_id):
         return jsonify({"message": "Profile updated successfully!"})
     except Exception as e:
         return jsonify({"error": f"Failed to update profile: {str(e)}"}), 500
+
+
+@app.route('/api/friends/status/<other_user_id>', methods=['GET'])
+@token_required
+def friend_status(current_user_id, other_user_id):
+    try:
+        status = get_friendship_status(current_user_id, other_user_id)
+        return jsonify({"status": status})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/friends/request', methods=['POST'])
+@token_required
+def post_friend_request(current_user_id):
+    data = request.get_json() or {}
+    receiver_user_id = data.get('receiver_user_id')
+    if not receiver_user_id:
+        return jsonify({"error": "Receiver user ID is required."}), 400
+        
+    try:
+        success, msg = send_friend_request(current_user_id, receiver_user_id)
+        if success:
+            return jsonify({"message": msg})
+        else:
+            return jsonify({"error": msg}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/friends/accept', methods=['POST'])
+@token_required
+def post_accept_friend(current_user_id):
+    data = request.get_json() or {}
+    sender_user_id = data.get('sender_user_id')
+    if not sender_user_id:
+        return jsonify({"error": "Sender user ID is required."}), 400
+        
+    try:
+        accept_friend_request(sender_user_id, current_user_id)
+        return jsonify({"message": "Friend request accepted!"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/friends/decline', methods=['POST'])
+@token_required
+def post_decline_friend(current_user_id):
+    data = request.get_json() or {}
+    sender_user_id = data.get('sender_user_id')
+    if not sender_user_id:
+        return jsonify({"error": "Sender/Receiver user ID is required."}), 400
+        
+    try:
+        decline_friend_request(sender_user_id, current_user_id)
+        return jsonify({"message": "Friend request declined/cancelled."})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/friends', methods=['GET'])
+@token_required
+def get_user_friends(current_user_id):
+    try:
+        friends = get_friends_list(current_user_id)
+        return jsonify(friends)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/friends/requests', methods=['GET'])
+@token_required
+def get_user_friend_requests(current_user_id):
+    try:
+        requests = get_pending_requests(current_user_id)
+        return jsonify(requests)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/friends/remove', methods=['POST'])
+@token_required
+def post_remove_friend(current_user_id):
+    data = request.get_json() or {}
+    friend_user_id = data.get('friend_user_id')
+    if not friend_user_id:
+        return jsonify({"error": "Friend user ID is required."}), 400
+        
+    try:
+        decline_friend_request(current_user_id, friend_user_id)
+        return jsonify({"message": "Friend removed successfully."})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == '__main__':

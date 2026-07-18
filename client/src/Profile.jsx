@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { Link } from "react-router-dom"
 import PlayerCard from "./PlayerCard"
 import { useToast } from './Toast';
 
@@ -10,6 +11,8 @@ function Profile() {
     const [refreshing, setRefreshing] = useState(false)
     const [error, setError] = useState(null)
     const token = localStorage.getItem('user_token')
+    const [friends, setFriends] = useState([])
+    const [requests, setRequests] = useState([])
 
     // Email OTP states
     const [verificationCode, setVerificationCode] = useState("")
@@ -65,8 +68,90 @@ function Profile() {
         }
     }
 
+    const fetchFriendsAndRequests = async () => {
+        if (!token) return;
+        try {
+            const friendsRes = await fetch('/api/friends', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (friendsRes.ok) {
+                const friendsData = await friendsRes.json();
+                setFriends(friendsData);
+            }
+
+            const reqsRes = await fetch('/api/friends/requests', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (reqsRes.ok) {
+                const reqsData = await reqsRes.json();
+                setRequests(reqsData);
+            }
+        } catch (err) {
+            console.error("Error fetching friends/requests:", err);
+        }
+    };
+
+    const handleAcceptRequest = async (senderId) => {
+        try {
+            const res = await fetch('/api/friends/accept', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ sender_user_id: senderId })
+            });
+            if (res.ok) {
+                showToast("Friend request accepted!", "success");
+                fetchFriendsAndRequests();
+            }
+        } catch (err) {
+            showToast("Failed to accept request.", "error");
+        }
+    };
+
+    const handleDeclineRequest = async (senderId) => {
+        try {
+            const res = await fetch('/api/friends/decline', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ sender_user_id: senderId })
+            });
+            if (res.ok) {
+                showToast("Request declined.", "success");
+                fetchFriendsAndRequests();
+            }
+        } catch (err) {
+            showToast("Failed to decline request.", "error");
+        }
+    };
+
+    const handleRemoveFriend = async (friendId) => {
+        if (!window.confirm("Are you sure you want to remove this friend?")) return;
+        try {
+            const res = await fetch('/api/friends/remove', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ friend_user_id: friendId })
+            });
+            if (res.ok) {
+                showToast("Friend removed.", "success");
+                fetchFriendsAndRequests();
+            }
+        } catch (err) {
+            showToast("Failed to remove friend.", "error");
+        }
+    };
+
     useEffect(() => {
-        fetchProfile()
+        fetchProfile();
+        fetchFriendsAndRequests();
     }, [token])
 
     const handleVerifyEmail = async (e) => {
@@ -361,6 +446,75 @@ function Profile() {
                             </button>
                         </form>
                     )}
+
+                    {/* Friends and Requests Section */}
+                    <div style={{ marginTop: '2.5rem', width: '100%', textAlign: 'left' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
+                            {/* Pending Requests Column */}
+                            {requests.length > 0 && (
+                                <div className="hextech-card" style={{ padding: '20px', border: '1px solid var(--border-blue)', background: 'rgba(6, 11, 19, 0.6)' }}>
+                                    <h4 style={{ fontFamily: 'Cinzel', color: 'var(--gold-primary)', margin: '0 0 15px 0', borderBottom: '1px solid rgba(200,170,110,0.2)', paddingBottom: '6px', fontSize: '0.95rem' }}>
+                                        Friend Requests ({requests.length})
+                                    </h4>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                        {requests.map(req => (
+                                            <div key={req.user_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: 'rgba(2, 6, 12, 0.4)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                                <div>
+                                                    <div style={{ fontWeight: 'bold', fontSize: '0.85rem', color: 'var(--text-light)' }}>
+                                                        {req.game_name}#{req.tag}
+                                                    </div>
+                                                    <div style={{ fontSize: '0.72rem', color: 'var(--text-main)' }}>
+                                                        {req.uni_name} • {req.rank_tier}
+                                                    </div>
+                                                </div>
+                                                <div style={{ display: 'flex', gap: '6px' }}>
+                                                    <button onClick={() => handleAcceptRequest(req.user_id)} style={{ padding: '4px 8px', fontSize: '0.7rem', background: 'var(--success)', color: '#fff', border: 'none', cursor: 'pointer' }}>Accept</button>
+                                                    <button onClick={() => handleDeclineRequest(req.user_id)} style={{ padding: '4px 8px', fontSize: '0.7rem', background: 'var(--danger)', color: '#fff', border: 'none', cursor: 'pointer' }}>Decline</button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Friends List Column */}
+                            <div className="hextech-card" style={{ padding: '20px', border: '1px solid var(--border-gold)', background: 'rgba(6, 11, 19, 0.6)', gridColumn: requests.length > 0 ? 'span 1' : 'span 2' }}>
+                                <h4 style={{ fontFamily: 'Cinzel', color: 'var(--gold-primary)', margin: '0 0 15px 0', borderBottom: '1px solid rgba(200,170,110,0.2)', paddingBottom: '6px', fontSize: '0.95rem' }}>
+                                    My Friends ({friends.length})
+                                </h4>
+                                {friends.length > 0 ? (
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+                                        {friends.map(friend => {
+                                            const friendPfp = `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${friend.profile_icon_id || 29}.jpg`;
+                                            return (
+                                                <div key={friend.user_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: 'rgba(2, 6, 12, 0.4)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                        <img src={friendPfp} alt="" style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1px solid var(--border-gold)' }} />
+                                                        <div>
+                                                            <div style={{ fontWeight: 'bold', fontSize: '0.85rem', color: 'var(--text-light)' }}>
+                                                                <Link to={`/player/${friend.puuid}`} style={{ color: 'var(--text-light)', textDecoration: 'none' }}>
+                                                                    {friend.game_name}
+                                                                </Link>
+                                                                <span style={{ color: 'var(--gold-primary)', fontSize: '0.75rem', fontFamily: 'Cinzel', marginLeft: '2px' }}>#{friend.tag}</span>
+                                                            </div>
+                                                            <div style={{ fontSize: '0.7rem', color: 'var(--text-main)' }}>
+                                                                {friend.rank_tier} ({friend.lp} LP)
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <button onClick={() => handleRemoveFriend(friend.user_id)} style={{ background: 'transparent', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '0.8rem', padding: '4px' }} title="Remove Friend">✕</button>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <div style={{ color: 'var(--text-main)', fontSize: '0.85rem', fontStyle: 'italic', padding: '10px 0' }}>
+                                        Your friends list is empty. View other players' profiles on the leaderboard to send friend requests!
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             ) : (
                 <div style={{ margin: '2rem auto', padding: '3rem', border: '1px dashed var(--border-gold)', borderRadius: '4px' }}>
