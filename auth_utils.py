@@ -20,6 +20,9 @@ def validate_password_strength(password: str):
 
 import requests
 import os
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 def hash_password(plain_text):
     salt = bcrypt.gensalt()
@@ -30,6 +33,31 @@ def check_password(plain_text, hashed_text):
     try:
         return bcrypt.checkpw(plain_text.encode('utf-8'), hashed_text.encode('utf-8'))
     except Exception:
+        return False
+
+def send_email_smtp(to_email: str, subject: str, html_content: str):
+    smtp_email = os.getenv("SMTP_EMAIL")
+    smtp_password = os.getenv("SMTP_PASSWORD")
+    if not smtp_email or not smtp_password:
+        return False
+        
+    try:
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = subject
+        msg['From'] = smtp_email
+        msg['To'] = to_email
+        
+        part = MIMEText(html_content, 'html')
+        msg.attach(part)
+        
+        # Connect to Gmail SMTP (SSL on port 465)
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10) as server:
+            server.login(smtp_email, smtp_password)
+            server.sendmail(smtp_email, to_email, msg.as_string())
+        print(f"[EMAIL SENDER] Successfully sent SMTP email to {to_email}")
+        return True
+    except Exception as e:
+        print(f"[EMAIL SENDER ERROR] SMTP failed: {e}")
         return False
 
 def send_verification_email(email: str, code: str):
@@ -74,6 +102,11 @@ def send_verification_email(email: str, code: str):
     </html>
     """
     
+    # Try SMTP first if configured
+    if os.getenv("SMTP_EMAIL") and os.getenv("SMTP_PASSWORD"):
+        if send_email_smtp(email, "Verify your Uni-League Student Email", html_content):
+            return True
+
     try:
         url = "https://api.resend.com/emails"
         headers = {
@@ -138,6 +171,11 @@ def send_password_reset_email(email: str, code: str):
     </html>
     """
     
+    # Try SMTP first if configured
+    if os.getenv("SMTP_EMAIL") and os.getenv("SMTP_PASSWORD"):
+        if send_email_smtp(email, "Uni-League Password Reset Authorization Code", html_content):
+            return True
+
     try:
         url = "https://api.resend.com/emails"
         headers = {
