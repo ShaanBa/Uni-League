@@ -534,6 +534,7 @@ def get_player_profile_by_puuid(puuid):
         "twitter_handle": profile.get('twitter_handle'),
         "bio": profile.get('bio'),
         "main_lane": profile.get('main_lane', 'FILL'),
+        "claimed_user_id": profile.get('claimed_user_id'),
         "recentMatches": matches
     })
 
