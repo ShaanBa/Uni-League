@@ -151,11 +151,12 @@ def create_user(email, password_hash, university_id, con=None):
             print(f'Error creating user: {e}')
             return None
 
-def calculate_score(tier, division):
+def calculate_score(tier, division, lp=0):
     '''
-    Calculates the score of a summoner based on their rank tier and division, allows for leaderboard sorting.
+    Calculates the score of a summoner based on their rank tier, division, and LP, allows for leaderboard sorting.
     Args: tier (str): The rank tier of the summoner.
           division (str): The rank division of the summoner.
+          lp (int): The LP of the summoner.
     Returns: int: The calculated score.
     '''
     Tier_Map = {
@@ -174,7 +175,7 @@ def calculate_score(tier, division):
     Div_Map = {"IV": 0, "III": 100, "II": 200, "I": 300}
     # Ensure tier is uppercase and safely retrieve tier/division values
     tier_upper = tier.upper() if tier else "UNRANKED"
-    return Tier_Map.get(tier_upper, 0) + Div_Map.get(division, 0)
+    return Tier_Map.get(tier_upper, 0) + Div_Map.get(division, 0) + (lp or 0)
 def get_leaderboard(uni_id):
     '''
     Gets the leaderboard of summoners for a given university, sorted by score (calculated from rank). If uni_id is 'all', it gets the leaderboard for all universities.
@@ -201,7 +202,7 @@ def get_leaderboard(uni_id):
         
         summoners = cur.fetchall()
         for summoner in summoners:
-            summoner['score'] = calculate_score(summoner['rank_tier'], summoner['rank_division']) # calculate score for each summoner for sorting and frontend display
+            summoner['score'] = calculate_score(summoner['rank_tier'], summoner['rank_division'], summoner.get('lp', 0)) # calculate score for each summoner for sorting and frontend display
         # sort the summoners by score in descending order for leaderboard display (highest rank at top)
         sorted_list = sorted(summoners, key=lambda x: x['score'], reverse=True)
         return sorted_list

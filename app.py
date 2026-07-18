@@ -577,7 +577,7 @@ def simulate_match():
     def construct_lineup(summoners, uni_short_name):
         lineup = []
         for s in summoners:
-            power = calculate_score(s['rank_tier'], s['rank_division']) + s['lp']
+            power = calculate_score(s['rank_tier'], s['rank_division'], s['lp'])
             lineup.append({
                 "game_name": s['game_name'],
                 "tag": s['tag'],
@@ -593,7 +593,7 @@ def simulate_match():
             tier = random.choice(["BRONZE", "SILVER", "GOLD", "PLATINUM"])
             div = random.choice(["I", "II", "III", "IV"])
             lp = random.randint(0, 99)
-            power = calculate_score(tier, div) + lp
+            power = calculate_score(tier, div, lp)
             
             lineup.append({
                 "game_name": f"Recruit {random.choice(['Alpha', 'Beta', 'Gamma', 'Delta', 'Omega'])}",
