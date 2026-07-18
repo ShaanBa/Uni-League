@@ -460,6 +460,9 @@ def get_user_profile(current_user_id):
         "profile_icon_id": profile.get('profile_icon_id', 29),
         "is_verified": is_verified,
         "region": profile.get('region', 'na1'),
+        "discord_handle": profile.get('discord_handle'),
+        "twitter_handle": profile.get('twitter_handle'),
+        "bio": profile.get('bio'),
         "recentMatches": matches
     })
     
@@ -523,6 +526,9 @@ def get_player_profile_by_puuid(puuid):
         "uni_name": profile.get('uni_name'),
         "uni_domain": profile.get('uni_domain'),
         "uni_logo_link": profile.get('uni_logo_link'),
+        "discord_handle": profile.get('discord_handle'),
+        "twitter_handle": profile.get('twitter_handle'),
+        "bio": profile.get('bio'),
         "recentMatches": matches
     })
 

@@ -9,6 +9,7 @@ import LandingPage from './LandingPage'
 import MatchSimulator from './MatchSimulator'
 import NotFound from './NotFound'
 import SupportPage from './SupportPage'
+import PlayerProfilePage from './PlayerProfilePage'
 
 function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -61,6 +62,7 @@ function App() {
                         <Route path="/leaderboard" element={<Leaderboard />} />
                         <Route path="/simulator" element={<MatchSimulator />} />
                         <Route path="/support" element={<SupportPage />} />
+                        <Route path="/player/:puuid" element={<PlayerProfilePage />} />
                         <Route path="/register" element={<Register />} />
                         <Route path="/login" element={
                             isLoggedIn ? <Navigate to="/profile" /> : <Login onLoginSuccess={() => setIsLoggedIn(true)} />

@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Leaderboard.css';
 import PlayerCard from './PlayerCard';
 import { getRankColor, FALLBACK_ICON } from './utils';
 
 function Leaderboard() {
+    const navigate = useNavigate();
     const [standingsType, setStandingsType] = useState('individual'); // 'individual' or 'university'
     const [leaderboardData, setLeaderboardData] = useState([]);
     const [uniLeaderboardData, setUniLeaderboardData] = useState([]);
@@ -20,11 +22,6 @@ function Leaderboard() {
     const [uniDetailTab, setUniDetailTab] = useState('roster'); // 'roster', 'stats', 'matches'
     const [uniRoster, setUniRoster] = useState([]);
     const [loadingUniRoster, setLoadingUniRoster] = useState(false);
-
-    // Player details modal state
-    const [activePlayerDetail, setActivePlayerDetail] = useState(null);
-    const [loadingPlayerDetail, setLoadingPlayerDetail] = useState(false);
-    const [playerFullProfile, setPlayerFullProfile] = useState(null);
 
     const userUniId = localStorage.getItem('uni_id'); // Grab the user's school if they are logged in
 
@@ -113,29 +110,6 @@ function Leaderboard() {
             fetchRoster();
         }
     }, [activeUniDetail]);
-
-    // Fetch player full profile when modal opens
-    useEffect(() => {
-        if (activePlayerDetail) {
-            const fetchPlayerProfile = async () => {
-                setLoadingPlayerDetail(true);
-                try {
-                    const response = await fetch(`/api/profile/player/${activePlayerDetail.puuid}`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        setPlayerFullProfile(data);
-                    }
-                } catch (err) {
-                    console.error("Error fetching player profile:", err);
-                } finally {
-                    setLoadingPlayerDetail(false);
-                }
-            };
-            fetchPlayerProfile();
-        } else {
-            setPlayerFullProfile(null);
-        }
-    }, [activePlayerDetail]);
 
     const getRosterStats = () => {
         if (uniRoster.length === 0) return { competitorCount: 0, avgWinRate: 0, totalLP: 0, avgRank: 'UNRANKED' };
@@ -268,7 +242,7 @@ function Leaderboard() {
                 <div className="podium-section">
                     <div className="podium-container">
                         {/* 2nd Place */}
-                        <div className="podium-card rank-2 hextech-card" onClick={() => setActivePlayerDetail(leaderboardData[1])}>
+                        <div className="podium-card rank-2 hextech-card" onClick={() => navigate('/player/' + leaderboardData[1].puuid)}>
                             <div className="podium-rank">2</div>
                             <div className="podium-avatar-wrapper">
                                 <img 
@@ -287,7 +261,7 @@ function Leaderboard() {
                         </div>
 
                         {/* 1st Place */}
-                        <div className="podium-card rank-1 hextech-card" onClick={() => setActivePlayerDetail(leaderboardData[0])}>
+                        <div className="podium-card rank-1 hextech-card" onClick={() => navigate('/player/' + leaderboardData[0].puuid)}>
                             <div className="podium-crown">👑</div>
                             <div className="podium-rank">1</div>
                             <div className="podium-avatar-wrapper">
@@ -307,7 +281,7 @@ function Leaderboard() {
                         </div>
 
                         {/* 3rd Place */}
-                        <div className="podium-card rank-3 hextech-card" onClick={() => setActivePlayerDetail(leaderboardData[2])}>
+                        <div className="podium-card rank-3 hextech-card" onClick={() => navigate('/player/' + leaderboardData[2].puuid)}>
                             <div className="podium-rank">3</div>
                             <div className="podium-avatar-wrapper">
                                 <img 
@@ -431,7 +405,7 @@ function Leaderboard() {
                                         return (
                                             <tr 
                                                 key={player.puuid} 
-                                                onClick={() => setActivePlayerDetail(player)}
+                                                onClick={() => navigate('/player/' + player.puuid)}
                                                 className="clickable-row"
                                             >
                                                 <td className="col-rank">{actualIndex + 1}</td>
@@ -649,8 +623,9 @@ function Leaderboard() {
                                                         <div>
                                                             <span 
                                                                 onClick={() => {
-                                                                    // Open player full profile modal
-                                                                    setActivePlayerDetail(player);
+                                                                    // Navigate to dedicated player profile page
+                                                                    navigate(`/player/${player.puuid}`);
+                                                                    setActiveUniDetail(null); // Close the university modal
                                                                 }}
                                                                 style={{ color: 'var(--text-light)', fontWeight: 'bold', fontSize: '0.9rem', cursor: 'pointer' }}
                                                                 className="player-click-link"
@@ -763,30 +738,6 @@ function Leaderboard() {
                                         )}
                                     </div>
                                 )}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
-
-            {/* --- Player Details Modal Overlay --- */}
-            {activePlayerDetail && (
-                <div className="modal-overlay" onClick={() => setActivePlayerDetail(null)}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px', padding: '2.5rem 1.5rem 1.5rem 1.5rem' }}>
-                        <button className="modal-close" onClick={() => setActivePlayerDetail(null)}>&times;</button>
-                        
-                        {loadingPlayerDetail ? (
-                            <div style={{ padding: '3rem 0', fontStyle: 'italic', color: 'var(--hextech-blue)', textAlign: 'center' }}>
-                                Loading player profile from the Rift...
-                            </div>
-                        ) : playerFullProfile ? (
-                            <div>
-                                <h3 className="modal-custom-title" style={{ textAlign: 'center', marginBottom: '1.2rem', fontSize: '1.3rem' }}>Summoner Profile</h3>
-                                <PlayerCard data={playerFullProfile} />
-                            </div>
-                        ) : (
-                            <div style={{ textAlign: 'center', padding: '2rem 0', color: 'var(--text-main)' }}>
-                                Could not retrieve player profile details.
                             </div>
                         )}
                     </div>
