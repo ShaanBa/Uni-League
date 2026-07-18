@@ -51,6 +51,30 @@ function PlayerCard({ data }) {
   const isFarmerSpecialist = avgCsMin >= 7.0;
   const isCollegiateIcon = ['MASTER', 'GRANDMASTER', 'CHALLENGER'].includes(data.rankTier?.toUpperCase());
 
+  const getChampionStats = () => {
+    if (!data.recentMatches || data.recentMatches.length === 0) return [];
+    const statsMap = {};
+    data.recentMatches.forEach(m => {
+      if (!statsMap[m.championName]) {
+        statsMap[m.championName] = { name: m.championName, count: 0, wins: 0, kills: 0, deaths: 0, assists: 0 };
+      }
+      const s = statsMap[m.championName];
+      s.count += 1;
+      if (m.win) s.wins += 1;
+      s.kills += m.kills;
+      s.deaths += m.deaths;
+      s.assists += m.assists;
+    });
+    return Object.values(statsMap)
+      .map(s => ({
+        ...s,
+        winrate: Math.round((s.wins / s.count) * 100),
+        kda: s.deaths === 0 ? 'Perfect' : ((s.kills + s.assists) / s.deaths).toFixed(1)
+      }))
+      .sort((a, b) => b.count - a.count || b.winrate - a.winrate);
+  };
+  const topChampions = getChampionStats().slice(0, 3);
+
   return (
     <div className="player-card hextech-card">
       <div className="profile-icon-container">
@@ -103,6 +127,11 @@ function PlayerCard({ data }) {
         {data.region && (
           <span style={{ fontSize: '0.75rem', padding: '2px 6px', background: 'rgba(0, 210, 241, 0.1)', border: '1px solid rgba(0, 210, 241, 0.2)', color: 'var(--hextech-blue)', borderRadius: '2px', textTransform: 'uppercase', fontWeight: 'bold' }}>
             {data.region}
+          </span>
+        )}
+        {data.main_lane && (
+          <span style={{ fontSize: '0.75rem', padding: '2px 6px', background: 'rgba(226, 177, 60, 0.1)', border: '1px solid rgba(226, 177, 60, 0.2)', color: 'var(--gold-primary)', borderRadius: '2px', textTransform: 'uppercase', fontWeight: 'bold', marginLeft: '6px' }}>
+            {data.main_lane}
           </span>
         )}
       </div>
@@ -159,6 +188,38 @@ function PlayerCard({ data }) {
                 </span>
               )}
             </div>
+          </div>
+        </>
+      )}
+
+      {/* Top Champions / Play-rates Section */}
+      {topChampions && topChampions.length > 0 && (
+        <>
+          <div className="matches-section-title">Most Played Champions (Recent)</div>
+          <div className="champions-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', margin: '0 15px 15px 15px' }}>
+            {topChampions.map((champ) => {
+              const champImg = championImgUrl(champ.name);
+              return (
+                <div key={champ.name} className="champion-stats-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px', background: 'rgba(2, 6, 12, 0.4)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '4px' }}>
+                  <img 
+                    src={champImg} 
+                    alt={champ.name} 
+                    style={{ width: '42px', height: '42px', borderRadius: '50%', border: '1.5px solid var(--border-gold)', marginBottom: '6px' }}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = FALLBACK_ICON;
+                    }}
+                  />
+                  <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-light)', marginBottom: '4px' }}>{champ.name}</div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-main)', marginBottom: '2px' }}>
+                    {champ.count} {champ.count === 1 ? 'Game' : 'Games'} • <span style={{ color: champ.winrate >= 50 ? '#20bf6b' : '#eb4d4b', fontWeight: 'bold' }}>{champ.winrate}% WR</span>
+                  </div>
+                  <div style={{ fontSize: '0.68rem', color: getKdaRatioColor(champ.kda), fontWeight: '800' }}>
+                    {champ.kda === 'Perfect' ? 'Perfect KDA' : `${champ.kda} KDA`}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </>
       )}

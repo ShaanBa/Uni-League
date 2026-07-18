@@ -186,14 +186,14 @@ def get_leaderboard(uni_id):
         cur = con.cursor(cursor_factory=RealDictCursor) # get results as dicts for ease of use in frontend 
         if uni_id == 'all' or uni_id == 'players':
             # all/players means we want all unis in LB, so no need for WHERE clause to filter by uni_id
-            query = """SELECT universities.uni_name, puuid, game_name, tag, rank_tier, rank_division, lp, wins, losses, profile_icon_id, region
+            query = """SELECT universities.uni_name, puuid, game_name, tag, rank_tier, rank_division, lp, wins, losses, profile_icon_id, region, main_lane
                     FROM summoners 
                     INNER JOIN users ON summoners.user_id = users.user_id 
                     JOIN universities ON users.uni_id = universities.uni_id"""
             cur.execute(query)        
         else:
             # specific uni means we need to filter by uni_id, so we add a WHERE clause for that
-            query = """SELECT universities.uni_name, puuid, game_name, tag, rank_tier, rank_division, lp, wins, losses, profile_icon_id, region 
+            query = """SELECT universities.uni_name, puuid, game_name, tag, rank_tier, rank_division, lp, wins, losses, profile_icon_id, region, main_lane 
                     FROM summoners 
                     INNER JOIN users ON summoners.user_id = users.user_id 
                     JOIN universities ON users.uni_id = universities.uni_id 
@@ -315,7 +315,7 @@ def get_profile_by_user(user_id):
     with get_db_connection() as con:
         cur = con.cursor(cursor_factory=RealDictCursor)
         query = """
-            SELECT s.puuid, s.game_name, s.tag, s.rank_tier, s.rank_division, s.lp, s.wins, s.losses, s.profile_icon_id, s.region, s.last_refreshed,
+            SELECT s.puuid, s.game_name, s.tag, s.rank_tier, s.rank_division, s.lp, s.wins, s.losses, s.profile_icon_id, s.region, s.last_refreshed, s.main_lane,
                    u.discord_handle, u.twitter_handle, u.bio
             FROM summoners s
             INNER JOIN users u ON s.user_id = u.user_id
@@ -331,7 +331,7 @@ def get_profile_by_puuid(puuid):
     with get_db_connection() as con:
         cur = con.cursor(cursor_factory=RealDictCursor)
         query = """
-            SELECT s.puuid, s.game_name, s.tag, s.rank_tier, s.rank_division, s.lp, s.wins, s.losses, s.profile_icon_id, s.region, s.last_refreshed,
+            SELECT s.puuid, s.game_name, s.tag, s.rank_tier, s.rank_division, s.lp, s.wins, s.losses, s.profile_icon_id, s.region, s.last_refreshed, s.main_lane,
                    u.uni_id, u.uni_name, u.uni_logo_link, u.uni_domain,
                    us.discord_handle, us.twitter_handle, us.bio
             FROM summoners s
@@ -342,15 +342,22 @@ def get_profile_by_puuid(puuid):
         cur.execute(query, (puuid,))
         return cur.fetchone()
 
-def update_user_socials(user_id, discord_handle, twitter_handle, bio):
+def update_user_socials(user_id, discord_handle, twitter_handle, bio, main_lane):
     with get_db_connection() as con:
         cur = con.cursor()
-        query = """
+        query_users = """
             UPDATE users 
             SET discord_handle = %s, twitter_handle = %s, bio = %s 
             WHERE user_id = %s
         """
-        cur.execute(query, (discord_handle, twitter_handle, bio, user_id))
+        cur.execute(query_users, (discord_handle, twitter_handle, bio, user_id))
+        
+        query_summoners = """
+            UPDATE summoners
+            SET main_lane = %s
+            WHERE user_id = %s
+        """
+        cur.execute(query_summoners, (main_lane, user_id))
         return True
 
 # --- Verification & Security Extensions ---
@@ -379,6 +386,9 @@ def init_db():
         
         # Add region column to summoners table
         cur.execute("ALTER TABLE summoners ADD COLUMN IF NOT EXISTS region VARCHAR(8) DEFAULT 'na1'")
+        
+        # Add main_lane column to summoners table
+        cur.execute("ALTER TABLE summoners ADD COLUMN IF NOT EXISTS main_lane VARCHAR(16) DEFAULT 'FILL'")
         
         # Add last_refreshed column to summoners table
         cur.execute("ALTER TABLE summoners ADD COLUMN IF NOT EXISTS last_refreshed TIMESTAMP DEFAULT CURRENT_TIMESTAMP")

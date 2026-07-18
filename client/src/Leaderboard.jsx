@@ -389,6 +389,7 @@ function Leaderboard() {
                                 <tr>
                                     <th style={{ textAlign: 'center' }}>Rank</th>
                                     <th>Summoner</th>
+                                    <th>Position</th>
                                     <th>Tier</th>
                                     <th>LP</th>
                                     <th>Power Score</th>
@@ -426,6 +427,12 @@ function Leaderboard() {
                                                         </div>
                                                     </div>
                                                 </td>
+
+                                                <td>
+                                                    <span style={{ fontSize: '0.78rem', color: 'var(--text-light)', border: '1px solid rgba(226, 177, 60, 0.15)', background: 'rgba(226, 177, 60, 0.05)', padding: '2px 8px', borderRadius: '2px', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px' }}>
+                                                        {player.main_lane || 'FILL'}
+                                                    </span>
+                                                </td>
                                                 
                                                 <td className="col-tier" style={{ color: getRankColor(player.rank_tier) }}>
                                                     <img 
@@ -449,7 +456,7 @@ function Leaderboard() {
                                     })
                                 ) : (
                                     <tr>
-                                        <td colSpan="5" style={{ textAlign: 'center', padding: '3rem' }}>
+                                        <td colSpan="6" style={{ textAlign: 'center', padding: '3rem' }}>
                                             No players found in this standings list.
                                         </td>
                                     </tr>

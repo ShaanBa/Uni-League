@@ -20,6 +20,7 @@ function Profile() {
     const [discord, setDiscord] = useState("")
     const [twitter, setTwitter] = useState("")
     const [bio, setBio] = useState("")
+    const [mainLane, setMainLane] = useState("FILL")
     const [updatingSocials, setUpdatingSocials] = useState(false)
     const [showEditSocials, setShowEditSocials] = useState(false)
 
@@ -50,6 +51,7 @@ function Profile() {
                 setDiscord(data.discord_handle || "")
                 setTwitter(data.twitter_handle || "")
                 setBio(data.bio || "")
+                setMainLane(data.main_lane || "FILL")
             } else if (response.status === 404) {
                 // Not claimed yet, which is expected
                 setPlayerData(null)
@@ -165,20 +167,22 @@ function Profile() {
                 body: JSON.stringify({
                     discord_handle: discord.trim(),
                     twitter_handle: twitter.trim(),
-                    bio: bio.trim()
+                    bio: bio.trim(),
+                    main_lane: mainLane
                 })
             })
             const data = await response.json()
             
             if (response.ok) {
-                showToast("Social profiles updated successfully!", 'success')
+                showToast("Profile updated successfully!", 'success')
                 setShowEditSocials(false)
                 // Refresh local profile state with updated values
                 setPlayerData(prev => ({
                     ...prev,
                     discord_handle: discord.trim(),
                     twitter_handle: twitter.trim(),
-                    bio: bio.trim()
+                    bio: bio.trim(),
+                    main_lane: mainLane
                 }))
             } else {
                 setError(data.error || "Failed to update socials.")
@@ -296,6 +300,30 @@ function Profile() {
                                     onChange={(e) => setTwitter(e.target.value)}
                                     style={{ fontSize: '0.85rem', padding: '6px' }}
                                 />
+                            </div>
+                            <div className="form-group" style={{ marginBottom: '10px' }}>
+                                <label style={{ fontSize: '0.75rem' }}>Main Position / Lane</label>
+                                <select 
+                                    value={mainLane}
+                                    onChange={(e) => setMainLane(e.target.value)}
+                                    style={{ 
+                                        width: '100%', 
+                                        background: '#02060c', 
+                                        border: '1px solid var(--border-blue)', 
+                                        color: '#e2e8f0', 
+                                        padding: '8px', 
+                                        borderRadius: '2px', 
+                                        fontSize: '0.85rem',
+                                        fontFamily: 'inherit'
+                                    }}
+                                >
+                                    <option value="TOP">Top</option>
+                                    <option value="JUNGLE">Jungle</option>
+                                    <option value="MIDDLE">Middle</option>
+                                    <option value="BOTTOM">Bottom</option>
+                                    <option value="SUPPORT">Support</option>
+                                    <option value="FILL">Fill</option>
+                                </select>
                             </div>
                             <div className="form-group" style={{ marginBottom: '12px' }}>
                                 <label style={{ fontSize: '0.75rem' }}>Short Gaming Bio (Max 255 chars)</label>

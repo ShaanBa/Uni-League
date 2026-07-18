@@ -463,6 +463,7 @@ def get_user_profile(current_user_id):
         "discord_handle": profile.get('discord_handle'),
         "twitter_handle": profile.get('twitter_handle'),
         "bio": profile.get('bio'),
+        "main_lane": profile.get('main_lane', 'FILL'),
         "recentMatches": matches
     })
     
@@ -529,6 +530,7 @@ def get_player_profile_by_puuid(puuid):
         "discord_handle": profile.get('discord_handle'),
         "twitter_handle": profile.get('twitter_handle'),
         "bio": profile.get('bio'),
+        "main_lane": profile.get('main_lane', 'FILL'),
         "recentMatches": matches
     })
 
@@ -864,16 +866,21 @@ def update_socials(current_user_id):
     discord_handle = data.get('discord_handle', '').strip()
     twitter_handle = data.get('twitter_handle', '').strip()
     bio = data.get('bio', '').strip()
+    main_lane = data.get('main_lane', 'FILL').strip().upper()
     
     # Check bio length
     if len(bio) > 255:
         return jsonify({"error": "Bio cannot exceed 255 characters."}), 400
         
+    valid_lanes = ["TOP", "JUNGLE", "MIDDLE", "BOTTOM", "SUPPORT", "FILL"]
+    if main_lane not in valid_lanes:
+        main_lane = "FILL"
+        
     try:
-        update_user_socials(current_user_id, discord_handle or None, twitter_handle or None, bio or None)
-        return jsonify({"message": "Social profiles updated successfully!"})
+        update_user_socials(current_user_id, discord_handle or None, twitter_handle or None, bio or None, main_lane)
+        return jsonify({"message": "Profile updated successfully!"})
     except Exception as e:
-        return jsonify({"error": f"Failed to update socials: {str(e)}"}), 500
+        return jsonify({"error": f"Failed to update profile: {str(e)}"}), 500
 
 
 if __name__ == '__main__':
